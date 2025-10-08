@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import SentimentDashboard from './components/SentimentDashboard';
 import PostsFeed from './components/PostsFeed';
@@ -7,7 +7,7 @@ import TimelineChart from './components/TimelineChart';
 import { fetchStats, fetchPosts, fetchTimeline } from './services/api';
 
 function App() {
-  const [ticker, setTicker] = useState('SPY');
+  const [ticker] = useState('SPY');
   const [stats, setStats] = useState(null);
   const [posts, setPosts] = useState([]);
   const [timeline, setTimeline] = useState([]);
@@ -15,7 +15,7 @@ function App() {
   const [error, setError] = useState(null);
   const [lastUpdate, setLastUpdate] = useState(null);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -36,7 +36,7 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [ticker]);
 
   useEffect(() => {
     loadData();
@@ -44,7 +44,7 @@ function App() {
     // Auto-refresh every 5 minutes
     const interval = setInterval(loadData, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [ticker]);
+  }, [ticker, loadData]);
 
   return (
     <div className="App">
