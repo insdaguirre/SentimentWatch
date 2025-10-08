@@ -14,7 +14,7 @@ const TimelineChart = ({ data }) => {
   }
 
   const chartData = data.map(item => ({
-    time: format(new Date(item.timestamp), 'MMM d HH:mm'),
+    time: format(new Date(item.timestamp), 'MMM d HH:mm:ss'),
     overallScore: item.overallScore,
     confidence: item.confidence,
     totalPosts: item.totalPosts,
