@@ -15,10 +15,10 @@ const TimelineChart = ({ data }) => {
 
   const chartData = data.map(item => ({
     time: format(new Date(item.timestamp), 'MMM d HH:mm'),
-    positive: item.positive,
-    negative: item.negative,
-    neutral: item.neutral,
-    total: item.positive + item.negative + item.neutral
+    overallScore: item.overallScore,
+    confidence: item.confidence,
+    totalPosts: item.totalPosts,
+    sentiment: item.overallSentiment
   }));
 
   return (
@@ -51,30 +51,22 @@ const TimelineChart = ({ data }) => {
           />
           <Line 
             type="monotone" 
-            dataKey="positive" 
+            dataKey="overallScore" 
+            stroke="#667eea" 
+            strokeWidth={3}
+            dot={{ fill: '#667eea', r: 4 }}
+            activeDot={{ r: 6 }}
+            name="Overall Score"
+          />
+          <Line 
+            type="monotone" 
+            dataKey="confidence" 
             stroke="#10b981" 
-            strokeWidth={3}
-            dot={{ fill: '#10b981', r: 4 }}
-            activeDot={{ r: 6 }}
-            name="Positive"
-          />
-          <Line 
-            type="monotone" 
-            dataKey="neutral" 
-            stroke="#f59e0b" 
-            strokeWidth={3}
-            dot={{ fill: '#f59e0b', r: 4 }}
-            activeDot={{ r: 6 }}
-            name="Neutral"
-          />
-          <Line 
-            type="monotone" 
-            dataKey="negative" 
-            stroke="#ef4444" 
-            strokeWidth={3}
-            dot={{ fill: '#ef4444', r: 4 }}
-            activeDot={{ r: 6 }}
-            name="Negative"
+            strokeWidth={2}
+            strokeDasharray="5 5"
+            dot={{ fill: '#10b981', r: 3 }}
+            activeDot={{ r: 5 }}
+            name="Confidence"
           />
         </LineChart>
       </ResponsiveContainer>

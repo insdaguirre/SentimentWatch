@@ -86,7 +86,7 @@ function App() {
               </div>
               
               <div className="stats-section">
-                <StatsPanel stats={stats} />
+                <StatsPanel stats={stats} snapshots={snapshots} />
               </div>
             </div>
 
@@ -95,15 +95,30 @@ function App() {
                 <h2>📊 Recent Sentiment Snapshots</h2>
                 <p>Showing aggregated sentiment data from the last {snapshots.length} time windows</p>
                 {snapshots.length > 0 && (
-                  <div className="snapshot-summary">
-                    <div className="snapshot-item">
-                      <span className="snapshot-time">
-                        Latest: {new Date(snapshots[0].timestamp).toLocaleString()}
-                      </span>
-                      <span className="snapshot-sentiment">
-                        {snapshots[0].overallSentiment} ({snapshots[0].totalPosts} posts)
-                      </span>
-                    </div>
+                  <div className="snapshots-list">
+                    {snapshots.slice(0, 3).map((snapshot, index) => (
+                      <div key={snapshot.id || index} className="snapshot-item">
+                        <div className="snapshot-header">
+                          <span className="snapshot-time">
+                            {new Date(snapshot.timestamp).toLocaleString()}
+                          </span>
+                          <span className={`snapshot-sentiment sentiment-${snapshot.overallSentiment}`}>
+                            {snapshot.overallSentiment} ({snapshot.totalPosts} posts)
+                          </span>
+                        </div>
+                        <div className="snapshot-details">
+                          <div className="sentiment-breakdown">
+                            <span className="sentiment-item positive">+{snapshot.sentimentBreakdown.positive.count}</span>
+                            <span className="sentiment-item neutral">{snapshot.sentimentBreakdown.neutral.count}</span>
+                            <span className="sentiment-item negative">-{snapshot.sentimentBreakdown.negative.count}</span>
+                          </div>
+                          <div className="snapshot-metrics">
+                            <span className="metric">Confidence: {(snapshot.confidence * 100).toFixed(0)}%</span>
+                            <span className="metric">Score: {snapshot.overallScore.toFixed(2)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>

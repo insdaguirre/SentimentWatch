@@ -1,8 +1,12 @@
 import React from 'react';
 import './StatsPanel.css';
 
-const StatsPanel = ({ stats }) => {
-  if (!stats || !stats.bySource) {
+const StatsPanel = ({ stats, snapshots }) => {
+  // Get source data from the latest snapshot
+  const latestSnapshot = snapshots && snapshots.length > 0 ? snapshots[0] : null;
+  const sourceData = latestSnapshot ? latestSnapshot.sources : null;
+
+  if (!sourceData) {
     return (
       <div className="stats-panel">
         <h2>Source Breakdown</h2>
@@ -23,7 +27,7 @@ const StatsPanel = ({ stats }) => {
       
       <div className="source-stats">
         {sources.map(source => {
-          const data = stats.bySource[source.key];
+          const data = sourceData[source.key];
           if (!data) return null;
 
           return (
