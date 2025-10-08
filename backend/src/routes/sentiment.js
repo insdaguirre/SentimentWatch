@@ -1,90 +1,107 @@
 const express = require('express');
 const router = express.Router();
 const SentimentPost = require('../models/SentimentPost');
+const SentimentSnapshot = require('../models/SentimentSnapshot');
 
 // General sentiment API info
 router.get('/', (req, res) => {
   res.json({
     success: true,
-    message: 'Stock Sentiment API',
-    version: '1.0.0',
+    message: 'Stock Sentiment API - Optimized with Real-time Aggregation',
+    version: '2.0.0',
     endpoints: {
-      posts: '/api/sentiment/posts/:ticker',
+      current: '/api/sentiment/current/:ticker',
       stats: '/api/sentiment/stats/:ticker',
       timeline: '/api/sentiment/timeline/:ticker',
-      top: '/api/sentiment/top/:ticker',
+      snapshots: '/api/sentiment/snapshots/:ticker',
       health: '/api/sentiment/health'
     },
     examples: {
-      posts: '/api/sentiment/posts/SPY',
+      current: '/api/sentiment/current/SPY',
       stats: '/api/sentiment/stats/SPY?hours=24',
       timeline: '/api/sentiment/timeline/SPY?hours=24',
-      top: '/api/sentiment/top/SPY?sentiment=positive&limit=10'
-    }
+      snapshots: '/api/sentiment/snapshots/SPY?limit=10'
+    },
+    features: [
+      'Real-time sentiment aggregation',
+      '5-minute sentiment snapshots',
+      'Automatic data cleanup',
+      'Memory-efficient processing'
+    ]
   });
 });
 
-// Get recent posts for a ticker
-router.get('/posts/:ticker', async (req, res) => {
+// Get current sentiment (latest snapshot)
+router.get('/current/:ticker', async (req, res) => {
   try {
     const { ticker } = req.params;
-    const limit = parseInt(req.query.limit) || 50;
-    const source = req.query.source; // optional filter by source
 
-    const query = { 
-      ticker: ticker.toUpperCase(), 
-      processed: true 
-    };
-    
-    if (source) {
-      query.source = source;
+    const latestSnapshot = await SentimentSnapshot.findOne({
+      ticker: ticker.toUpperCase(),
+      processed: true
+    }).sort({ timestamp: -1 });
+
+    if (!latestSnapshot) {
+      return res.json({
+        success: true,
+        data: {
+          ticker: ticker.toUpperCase(),
+          message: 'No sentiment data available',
+          timestamp: new Date(),
+          overallSentiment: 'neutral',
+          confidence: 0,
+          totalPosts: 0
+        }
+      });
     }
-
-    const posts = await SentimentPost.find(query)
-      .sort({ publishedAt: -1 })
-      .limit(limit)
-      .select('-__v');
 
     res.json({
       success: true,
-      count: posts.length,
-      data: posts.map(p => p.toPublicJSON())
+      data: latestSnapshot.toPublicJSON()
     });
   } catch (error) {
-    console.error('Error fetching posts:', error);
+    console.error('Error fetching current sentiment:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch posts'
+      error: 'Failed to fetch current sentiment'
     });
   }
 });
 
-// Get sentiment statistics
+// Get recent sentiment snapshots
+router.get('/snapshots/:ticker', async (req, res) => {
+  try {
+    const { ticker } = req.params;
+    const limit = parseInt(req.query.limit) || 50;
+    const timeWindow = req.query.timeWindow || '5min';
+
+    const snapshots = await SentimentSnapshot.getRecentSnapshots(
+      ticker.toUpperCase(), 
+      timeWindow, 
+      limit
+    );
+
+    res.json({
+      success: true,
+      count: snapshots.length,
+      data: snapshots.map(s => s.toPublicJSON())
+    });
+  } catch (error) {
+    console.error('Error fetching snapshots:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch snapshots'
+    });
+  }
+});
+
+// Get sentiment statistics (aggregated from snapshots)
 router.get('/stats/:ticker', async (req, res) => {
   try {
     const { ticker } = req.params;
     const hours = parseInt(req.query.hours) || 24;
 
-    const stats = await SentimentPost.getSentimentStats(ticker.toUpperCase(), hours);
-
-    // Get breakdown by source
-    const startDate = new Date(Date.now() - hours * 60 * 60 * 1000);
-    const sourceBreakdown = await SentimentPost.aggregate([
-      {
-        $match: {
-          ticker: ticker.toUpperCase(),
-          processed: true,
-          publishedAt: { $gte: startDate }
-        }
-      },
-      {
-        $group: {
-          _id: '$source',
-          count: { $sum: 1 },
-          avgScore: { $avg: '$sentiment.score' }
-        }
-      }
-    ]);
+    const stats = await SentimentSnapshot.getSentimentStats(ticker.toUpperCase(), hours);
 
     res.json({
       success: true,
@@ -92,13 +109,7 @@ router.get('/stats/:ticker', async (req, res) => {
         ticker: ticker.toUpperCase(),
         period: `${hours} hours`,
         overall: stats,
-        bySource: sourceBreakdown.reduce((acc, item) => {
-          acc[item._id] = {
-            count: item.count,
-            avgScore: item.avgScore
-          };
-          return acc;
-        }, {})
+        lastUpdated: new Date()
       }
     });
   } catch (error) {
@@ -110,49 +121,22 @@ router.get('/stats/:ticker', async (req, res) => {
   }
 });
 
-// Get sentiment timeline (hourly breakdown)
+// Get sentiment timeline (from snapshots)
 router.get('/timeline/:ticker', async (req, res) => {
   try {
     const { ticker } = req.params;
     const hours = parseInt(req.query.hours) || 24;
-    const startDate = new Date(Date.now() - hours * 60 * 60 * 1000);
 
-    const timeline = await SentimentPost.aggregate([
-      {
-        $match: {
-          ticker: ticker.toUpperCase(),
-          processed: true,
-          publishedAt: { $gte: startDate }
-        }
-      },
-      {
-        $group: {
-          _id: {
-            hour: { $dateToString: { format: '%Y-%m-%d %H:00', date: '$publishedAt' } }
-          },
-          positive: {
-            $sum: { $cond: [{ $eq: ['$sentiment.label', 'positive'] }, 1, 0] }
-          },
-          negative: {
-            $sum: { $cond: [{ $eq: ['$sentiment.label', 'negative'] }, 1, 0] }
-          },
-          neutral: {
-            $sum: { $cond: [{ $eq: ['$sentiment.label', 'neutral'] }, 1, 0] }
-          },
-          avgScore: { $avg: '$sentiment.score' }
-        }
-      },
-      { $sort: { '_id.hour': 1 } }
-    ]);
+    const timeline = await SentimentSnapshot.getTimeline(ticker.toUpperCase(), hours);
 
     res.json({
       success: true,
-      data: timeline.map(t => ({
-        timestamp: t._id.hour,
-        positive: t.positive,
-        negative: t.negative,
-        neutral: t.neutral,
-        avgScore: t.avgScore
+      data: timeline.map(snapshot => ({
+        timestamp: snapshot.timestamp,
+        overallSentiment: snapshot.overallSentiment,
+        overallScore: snapshot.overallScore,
+        confidence: snapshot.confidence,
+        totalPosts: snapshot.totalPosts
       }))
     });
   } catch (error) {
@@ -164,35 +148,35 @@ router.get('/timeline/:ticker', async (req, res) => {
   }
 });
 
-// Get top posts by sentiment
+// Get top sentiment snapshots by confidence
 router.get('/top/:ticker', async (req, res) => {
   try {
     const { ticker } = req.params;
-    const sentiment = req.query.sentiment || 'positive'; // positive, negative, or neutral
+    const sentiment = req.query.sentiment || 'bullish'; // bullish, bearish, or neutral
     const limit = parseInt(req.query.limit) || 10;
     const hours = parseInt(req.query.hours) || 24;
     const startDate = new Date(Date.now() - hours * 60 * 60 * 1000);
 
-    const posts = await SentimentPost.find({
+    const snapshots = await SentimentSnapshot.find({
       ticker: ticker.toUpperCase(),
       processed: true,
-      'sentiment.label': sentiment,
-      publishedAt: { $gte: startDate }
+      overallSentiment: sentiment,
+      timestamp: { $gte: startDate }
     })
-      .sort({ 'sentiment.score': -1, 'metadata.upvotes': -1 })
+      .sort({ confidence: -1, timestamp: -1 })
       .limit(limit)
       .select('-__v');
 
     res.json({
       success: true,
-      count: posts.length,
-      data: posts.map(p => p.toPublicJSON())
+      count: snapshots.length,
+      data: snapshots.map(s => s.toPublicJSON())
     });
   } catch (error) {
-    console.error('Error fetching top posts:', error);
+    console.error('Error fetching top snapshots:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch top posts'
+      error: 'Failed to fetch top snapshots'
     });
   }
 });
@@ -200,15 +184,18 @@ router.get('/top/:ticker', async (req, res) => {
 // Health check
 router.get('/health', async (req, res) => {
   try {
-    const count = await SentimentPost.countDocuments();
-    const latest = await SentimentPost.findOne().sort({ ingestedAt: -1 });
+    const snapshotCount = await SentimentSnapshot.countDocuments();
+    const postCount = await SentimentPost.countDocuments();
+    const latestSnapshot = await SentimentSnapshot.findOne().sort({ timestamp: -1 });
 
     res.json({
       success: true,
       data: {
-        totalPosts: count,
-        latestIngestion: latest ? latest.ingestedAt : null,
-        status: 'healthy'
+        totalSnapshots: snapshotCount,
+        totalPosts: postCount,
+        latestSnapshot: latestSnapshot ? latestSnapshot.timestamp : null,
+        status: 'healthy',
+        architecture: 'optimized-aggregation'
       }
     });
   } catch (error) {
