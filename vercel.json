@@ -1,20 +1,7 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "build"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/$1"
-    }
-  ],
+  "buildCommand": "npm run build",
+  "outputDirectory": "build",
   "env": {
     "REACT_APP_API_URL": "https://stocksentiment-e3cfd7d49077.herokuapp.com/api"
   }
