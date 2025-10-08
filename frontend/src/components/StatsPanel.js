@@ -30,6 +30,12 @@ const StatsPanel = ({ stats, snapshots }) => {
           const data = sourceData[source.key];
           if (!data) return null;
 
+          // Calculate average score from sentiment breakdown
+          const { positive, negative, neutral } = data.sentiment;
+          const total = positive + negative + neutral;
+          const avgScore = total > 0 ? (positive - negative) / total + 0.5 : 0.5; // Scale to 0-1
+          const avgScorePercent = (avgScore * 100).toFixed(1);
+
           return (
             <div key={source.key} className="source-item">
               <div className="source-header">
@@ -40,13 +46,13 @@ const StatsPanel = ({ stats, snapshots }) => {
                 {data.count}
               </div>
               <div className="source-score">
-                Avg Score: {(data.avgScore * 100).toFixed(1)}%
+                Avg Score: {avgScorePercent}%
               </div>
               <div className="source-bar">
                 <div 
                   className="source-bar-fill"
                   style={{ 
-                    width: `${data.avgScore * 100}%`,
+                    width: `${avgScore * 100}%`,
                     background: source.color
                   }}
                 ></div>
