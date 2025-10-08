@@ -15,11 +15,24 @@ app.set('trust proxy', 1);
 
 // CORS - must be before helmet
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://*.vercel.app',
-    process.env.CORS_ORIGIN
-  ].filter(Boolean),
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow localhost for development
+    if (origin.includes('localhost')) return callback(null, true);
+    
+    // Allow all Vercel domains
+    if (origin.includes('vercel.app')) return callback(null, true);
+    
+    // Allow specific CORS_ORIGIN if set
+    if (process.env.CORS_ORIGIN && origin === process.env.CORS_ORIGIN) {
+      return callback(null, true);
+    }
+    
+    // Allow the request
+    callback(null, true);
+  },
   credentials: true
 }));
 
