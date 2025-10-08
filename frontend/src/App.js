@@ -4,7 +4,7 @@ import SentimentDashboard from './components/SentimentDashboard';
 import PostsFeed from './components/PostsFeed';
 import StatsPanel from './components/StatsPanel';
 import TimelineChart from './components/TimelineChart';
-import { fetchStats, fetchCurrentSentiment, fetchSnapshots, fetchTimeline } from './services/api';
+import { fetchStats, fetchSnapshots, fetchTimeline } from './services/api';
 
 function App() {
   const [ticker] = useState('SPY');
