@@ -1,0 +1,19 @@
+node_modules/
+.env
+*.log
+.DS_Store
+coverage/
+dist/
+build/
+.cache/
+*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+

@@ -1,0 +1,28 @@
+{
+  "name": "stock-sentiment-app",
+  "version": "1.0.0",
+  "description": "Stock sentiment tracking app with Heroku deployment",
+  "scripts": {
+    "start": "cd backend && npm start",
+    "build": "cd backend && npm install",
+    "heroku-postbuild": "cd backend && npm install"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/StockSentiment.git"
+  },
+  "keywords": [
+    "stock",
+    "sentiment",
+    "finance",
+    "reddit",
+    "stocktwits",
+    "news"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
