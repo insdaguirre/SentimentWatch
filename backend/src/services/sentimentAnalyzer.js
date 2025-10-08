@@ -4,6 +4,27 @@ class SentimentAnalyzer {
   constructor() {
     this.classifier = null;
     this.isInitialized = false;
+    
+    // Finance-specific sentiment enhancement rules
+    this.financeKeywords = {
+      positive: [
+        'bull', 'bullish', 'rally', 'surge', 'gain', 'profit', 'growth', 'up', 'rise', 'climb',
+        'breakout', 'momentum', 'strong', 'buy', 'long', 'optimistic', 'positive', 'beat',
+        'exceed', 'outperform', 'soar', 'jump', 'spike', 'boom', 'thrive', 'flourish',
+        'recovery', 'rebound', 'bounce', 'rally', 'advance', 'increase', 'boost', 'lift'
+      ],
+      negative: [
+        'bear', 'bearish', 'crash', 'plunge', 'loss', 'decline', 'down', 'fall', 'drop',
+        'sell', 'short', 'pessimistic', 'negative', 'miss', 'disappoint', 'weak', 'struggle',
+        'tumble', 'slump', 'collapse', 'dive', 'sink', 'plummet', 'crash', 'bust',
+        'recession', 'crisis', 'panic', 'fear', 'concern', 'worry', 'risk', 'volatile',
+        'uncertain', 'turbulent', 'unstable', 'decline', 'decrease', 'downturn', 'correction'
+      ],
+      neutral: [
+        'hold', 'stable', 'flat', 'sideways', 'consolidate', 'range', 'support', 'resistance',
+        'neutral', 'mixed', 'uncertain', 'wait', 'watch', 'monitor', 'evaluate', 'assess'
+      ]
+    };
   }
 
   async initialize() {
@@ -12,17 +33,15 @@ class SentimentAnalyzer {
     }
 
     try {
-      console.log('Loading FinBERT sentiment model...');
-      // Using FinBERT for financial sentiment analysis
+      console.log('Loading DistilBERT sentiment model with finance rules...');
+      // Using DistilBERT for sentiment analysis with custom finance enhancement
       this.classifier = await pipeline(
         'sentiment-analysis',
         'Xenova/distilbert-base-uncased-finetuned-sst-2-english'
       );
-      // Note: In production, use 'ProsusAI/finbert' but it requires more setup
-      // For now using a lightweight alternative that works out of the box
       
       this.isInitialized = true;
-      console.log('FinBERT model loaded successfully');
+      console.log('DistilBERT model with finance rules loaded successfully');
     } catch (error) {
       console.error('Error loading sentiment model:', error);
       throw error;
@@ -44,23 +63,10 @@ class SentimentAnalyzer {
       const label = result[0].label.toLowerCase();
       const score = result[0].score;
       
-      // Convert to finance-domain labels
-      let sentimentLabel;
-      if (label === 'positive') {
-        sentimentLabel = 'positive';
-      } else if (label === 'negative') {
-        sentimentLabel = 'negative';
-      } else {
-        sentimentLabel = 'neutral';
-      }
+      // Apply finance-specific sentiment enhancement
+      const enhancedResult = this.enhanceWithFinanceRules(text, label, score);
       
-      return {
-        label: sentimentLabel,
-        score: score,
-        positive: sentimentLabel === 'positive' ? score : 1 - score,
-        negative: sentimentLabel === 'negative' ? score : 1 - score,
-        neutral: sentimentLabel === 'neutral' ? score : 0.5
-      };
+      return enhancedResult;
     } catch (error) {
       console.error('Error analyzing sentiment:', error);
       // Return neutral sentiment on error
@@ -72,6 +78,77 @@ class SentimentAnalyzer {
         neutral: 0.34
       };
     }
+  }
+
+  enhanceWithFinanceRules(text, baseLabel, baseScore) {
+    const lowerText = text.toLowerCase();
+    
+    // Count finance-specific keywords
+    let positiveCount = 0;
+    let negativeCount = 0;
+    let neutralCount = 0;
+    
+    this.financeKeywords.positive.forEach(keyword => {
+      if (lowerText.includes(keyword)) {
+        positiveCount++;
+      }
+    });
+    
+    this.financeKeywords.negative.forEach(keyword => {
+      if (lowerText.includes(keyword)) {
+        negativeCount++;
+      }
+    });
+    
+    this.financeKeywords.neutral.forEach(keyword => {
+      if (lowerText.includes(keyword)) {
+        neutralCount++;
+      }
+    });
+    
+    // Calculate finance enhancement factor
+    const totalFinanceWords = positiveCount + negativeCount + neutralCount;
+    let financeBoost = 0;
+    
+    if (totalFinanceWords > 0) {
+      // Strong finance context - apply more weight to finance keywords
+      if (positiveCount > negativeCount) {
+        financeBoost = Math.min(0.3, positiveCount * 0.1);
+      } else if (negativeCount > positiveCount) {
+        financeBoost = -Math.min(0.3, negativeCount * 0.1);
+      }
+    }
+    
+    // Apply enhancement to base sentiment
+    let enhancedScore = baseScore;
+    let sentimentLabel = baseLabel;
+    
+    if (financeBoost !== 0) {
+      enhancedScore = Math.max(0, Math.min(1, baseScore + financeBoost));
+      
+      // Adjust label based on enhanced score
+      if (enhancedScore > 0.6) {
+        sentimentLabel = 'positive';
+      } else if (enhancedScore < 0.4) {
+        sentimentLabel = 'negative';
+      } else {
+        sentimentLabel = 'neutral';
+      }
+    }
+    
+    return {
+      label: sentimentLabel,
+      score: enhancedScore,
+      positive: sentimentLabel === 'positive' ? enhancedScore : (sentimentLabel === 'neutral' ? 0.5 : 1 - enhancedScore),
+      negative: sentimentLabel === 'negative' ? enhancedScore : (sentimentLabel === 'neutral' ? 0.5 : 1 - enhancedScore),
+      neutral: sentimentLabel === 'neutral' ? enhancedScore : 0.5,
+      financeKeywords: {
+        positive: positiveCount,
+        negative: negativeCount,
+        neutral: neutralCount,
+        boost: financeBoost
+      }
+    };
   }
 
   async analyzeBatch(texts) {
