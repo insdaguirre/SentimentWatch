@@ -15,7 +15,11 @@ app.set('trust proxy', 1);
 
 // CORS - must be before helmet
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: [
+    'http://localhost:3000',
+    'https://*.vercel.app',
+    process.env.CORS_ORIGIN
+  ].filter(Boolean),
   credentials: true
 }));
 
