@@ -1,8 +1,12 @@
 {
-  "version": 2,
-  "buildCommand": "npm run build",
-  "outputDirectory": "build",
-  "env": {
-    "REACT_APP_API_URL": "https://stocksentiment-e3cfd7d49077.herokuapp.com/api"
-  }
+  "buildCommand": "cd frontend && npm run build",
+  "outputDirectory": "frontend/build",
+  "installCommand": "cd frontend && npm install",
+  "framework": "create-react-app",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
