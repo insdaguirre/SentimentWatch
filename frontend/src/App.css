@@ -128,8 +128,50 @@
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
 }
 
-.posts-section {
+.snapshots-section {
   margin-top: 2rem;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.snapshots-info h2 {
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+  font-size: 1.5rem;
+}
+
+.snapshots-info p {
+  color: #718096;
+  margin-bottom: 1rem;
+}
+
+.snapshot-summary {
+  background: #f7fafc;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.snapshot-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.snapshot-time {
+  color: #4a5568;
+  font-size: 0.9rem;
+}
+
+.snapshot-sentiment {
+  background: #667eea;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
 }
 
 .refresh-button {

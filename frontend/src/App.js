@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import SentimentDashboard from './components/SentimentDashboard';
-import PostsFeed from './components/PostsFeed';
+// import PostsFeed from './components/PostsFeed'; // Removed - using snapshots instead of individual posts
 import StatsPanel from './components/StatsPanel';
 import TimelineChart from './components/TimelineChart';
 import { fetchStats, fetchSnapshots, fetchTimeline } from './services/api';
@@ -90,8 +90,23 @@ function App() {
               </div>
             </div>
 
-            <div className="posts-section">
-              <PostsFeed posts={snapshots} ticker={ticker} />
+            <div className="snapshots-section">
+              <div className="snapshots-info">
+                <h2>📊 Recent Sentiment Snapshots</h2>
+                <p>Showing aggregated sentiment data from the last {snapshots.length} time windows</p>
+                {snapshots.length > 0 && (
+                  <div className="snapshot-summary">
+                    <div className="snapshot-item">
+                      <span className="snapshot-time">
+                        Latest: {new Date(snapshots[0].timestamp).toLocaleString()}
+                      </span>
+                      <span className="snapshot-sentiment">
+                        {snapshots[0].overallSentiment} ({snapshots[0].totalPosts} posts)
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             <button className="refresh-button" onClick={loadData} disabled={loading}>
