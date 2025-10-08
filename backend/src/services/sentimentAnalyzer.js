@@ -1,8 +1,7 @@
-const { pipeline } = require('@xenova/transformers');
+const vader = require('vader-sentiment');
 
 class SentimentAnalyzer {
   constructor() {
-    this.classifier = null;
     this.isInitialized = false;
     
     // Finance-specific sentiment enhancement rules
@@ -11,18 +10,21 @@ class SentimentAnalyzer {
         'bull', 'bullish', 'rally', 'surge', 'gain', 'profit', 'growth', 'up', 'rise', 'climb',
         'breakout', 'momentum', 'strong', 'buy', 'long', 'optimistic', 'positive', 'beat',
         'exceed', 'outperform', 'soar', 'jump', 'spike', 'boom', 'thrive', 'flourish',
-        'recovery', 'rebound', 'bounce', 'rally', 'advance', 'increase', 'boost', 'lift'
+        'recovery', 'rebound', 'bounce', 'rally', 'advance', 'increase', 'boost', 'lift',
+        'moon', 'rocket', 'pump', 'hodl', 'diamond', 'hands', 'yolo', 'tendies'
       ],
       negative: [
         'bear', 'bearish', 'crash', 'plunge', 'loss', 'decline', 'down', 'fall', 'drop',
         'sell', 'short', 'pessimistic', 'negative', 'miss', 'disappoint', 'weak', 'struggle',
         'tumble', 'slump', 'collapse', 'dive', 'sink', 'plummet', 'crash', 'bust',
         'recession', 'crisis', 'panic', 'fear', 'concern', 'worry', 'risk', 'volatile',
-        'uncertain', 'turbulent', 'unstable', 'decline', 'decrease', 'downturn', 'correction'
+        'uncertain', 'turbulent', 'unstable', 'decline', 'decrease', 'downturn', 'correction',
+        'dump', 'rekt', 'bag', 'holder', 'fud', 'scam', 'bubble', 'overvalued'
       ],
       neutral: [
         'hold', 'stable', 'flat', 'sideways', 'consolidate', 'range', 'support', 'resistance',
-        'neutral', 'mixed', 'uncertain', 'wait', 'watch', 'monitor', 'evaluate', 'assess'
+        'neutral', 'mixed', 'uncertain', 'wait', 'watch', 'monitor', 'evaluate', 'assess',
+        'analysis', 'research', 'due', 'diligence', 'fundamentals', 'technical'
       ]
     };
   }
@@ -33,17 +35,12 @@ class SentimentAnalyzer {
     }
 
     try {
-      console.log('Loading DistilBERT sentiment model with finance rules...');
-      // Using DistilBERT for sentiment analysis with custom finance enhancement
-      this.classifier = await pipeline(
-        'sentiment-analysis',
-        'Xenova/distilbert-base-uncased-finetuned-sst-2-english'
-      );
-      
+      console.log('Initializing VADER sentiment analyzer with finance rules...');
+      // VADER is lightweight and doesn't require model loading
       this.isInitialized = true;
-      console.log('DistilBERT model with finance rules loaded successfully');
+      console.log('VADER sentiment analyzer with finance rules initialized successfully');
     } catch (error) {
-      console.error('Error loading sentiment model:', error);
+      console.error('Error initializing sentiment analyzer:', error);
       throw error;
     }
   }
@@ -54,17 +51,11 @@ class SentimentAnalyzer {
     }
 
     try {
-      // Truncate text to avoid model limits
-      const truncatedText = text.substring(0, 512);
-      
-      const result = await this.classifier(truncatedText);
-      
-      // Map the result to our format
-      const label = result[0].label.toLowerCase();
-      const score = result[0].score;
+      // Get VADER sentiment scores
+      const vaderResult = vader.SentimentIntensityAnalyzer.polarity_scores(text);
       
       // Apply finance-specific sentiment enhancement
-      const enhancedResult = this.enhanceWithFinanceRules(text, label, score);
+      const enhancedResult = this.enhanceWithFinanceRules(text, vaderResult);
       
       return enhancedResult;
     } catch (error) {
@@ -75,12 +66,13 @@ class SentimentAnalyzer {
         score: 0.5,
         positive: 0.33,
         negative: 0.33,
-        neutral: 0.34
+        neutral: 0.34,
+        compound: 0
       };
     }
   }
 
-  enhanceWithFinanceRules(text, baseLabel, baseScore) {
+  enhanceWithFinanceRules(text, vaderResult) {
     const lowerText = text.toLowerCase();
     
     // Count finance-specific keywords
@@ -119,29 +111,32 @@ class SentimentAnalyzer {
       }
     }
     
-    // Apply enhancement to base sentiment
-    let enhancedScore = baseScore;
-    let sentimentLabel = baseLabel;
+    // Apply enhancement to VADER compound score
+    let enhancedCompound = vaderResult.compound + financeBoost;
+    enhancedCompound = Math.max(-1, Math.min(1, enhancedCompound));
     
-    if (financeBoost !== 0) {
-      enhancedScore = Math.max(0, Math.min(1, baseScore + financeBoost));
-      
-      // Adjust label based on enhanced score
-      if (enhancedScore > 0.6) {
-        sentimentLabel = 'positive';
-      } else if (enhancedScore < 0.4) {
-        sentimentLabel = 'negative';
-      } else {
-        sentimentLabel = 'neutral';
-      }
+    // Determine sentiment label based on enhanced compound score
+    let sentimentLabel;
+    if (enhancedCompound >= 0.05) {
+      sentimentLabel = 'positive';
+    } else if (enhancedCompound <= -0.05) {
+      sentimentLabel = 'negative';
+    } else {
+      sentimentLabel = 'neutral';
     }
+    
+    // Calculate individual scores
+    const positive = Math.max(0, vaderResult.pos + (financeBoost > 0 ? financeBoost : 0));
+    const negative = Math.max(0, vaderResult.neg + (financeBoost < 0 ? Math.abs(financeBoost) : 0));
+    const neutral = vaderResult.neu;
     
     return {
       label: sentimentLabel,
-      score: enhancedScore,
-      positive: sentimentLabel === 'positive' ? enhancedScore : (sentimentLabel === 'neutral' ? 0.5 : 1 - enhancedScore),
-      negative: sentimentLabel === 'negative' ? enhancedScore : (sentimentLabel === 'neutral' ? 0.5 : 1 - enhancedScore),
-      neutral: sentimentLabel === 'neutral' ? enhancedScore : 0.5,
+      score: Math.abs(enhancedCompound),
+      positive: positive,
+      negative: negative,
+      neutral: neutral,
+      compound: enhancedCompound,
       financeKeywords: {
         positive: positiveCount,
         negative: negativeCount,
