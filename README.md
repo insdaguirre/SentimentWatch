@@ -51,36 +51,103 @@ flowchart LR
     F -.->|hosted on| K
 ```
 
-## 🧠 Sentiment Analysis
+## 🧠 How It Works
 
-### VADER + Finance Enhancement
+### Data Flow Architecture
+1. **Data Collection**: Background worker runs every 15 minutes
+2. **Multi-Source Ingestion**: Fetches from Reddit, StockTwits, and News APIs
+3. **Sentiment Analysis**: VADER + finance-specific keyword enhancement
+4. **Real-Time Aggregation**: Creates 5-minute sentiment snapshots
+5. **API Exposure**: Express.js serves aggregated data via REST endpoints
+6. **Frontend Visualization**: React dashboard displays live sentiment metrics
+
+### Optimized Data Architecture (v2.0)
+- **Sentiment Snapshots**: Aggregated data stored in 5-minute windows
+- **Memory Efficient**: Individual posts processed and discarded immediately
+- **TTL Indexes**: Automatic cleanup of old data (30-day retention)
+- **End-of-Day Cleanup**: Daily maintenance at 4:00 PM EST
+- **Real-Time Processing**: Batch processing for memory optimization
+
+### Sentiment Analysis Engine
+
+#### VADER + Finance Enhancement
 - **Base Model**: VADER sentiment analysis (lightweight, fast)
 - **Finance Keywords**: 40+ specialized terms for financial context
 - **Memory Efficient**: Uses only ~5MB vs 400MB+ for FinBERT
 - **Real-time**: Instant sentiment analysis without model loading
 
-### Finance-Specific Keywords
+#### Finance-Specific Keywords
 - **Positive**: bull, bullish, rally, surge, moon, HODL, diamond hands, pump, etc.
 - **Negative**: bear, bearish, crash, dump, rekt, bag holder, FUD, etc.
 - **Neutral**: hold, stable, consolidate, analysis, research, etc.
 
-## 📊 API Endpoints
+#### Sentiment Scoring Algorithm
+```javascript
+// 1. VADER base analysis
+const vaderResult = vader.SentimentIntensityAnalyzer.polarity_scores(text);
 
-### Sentiment Data
+// 2. Finance keyword enhancement
+const financeBoost = calculateFinanceBoost(text, financeKeywords);
+
+// 3. Enhanced compound score
+const enhancedCompound = vaderResult.compound + financeBoost;
+
+// 4. Final sentiment classification
+if (enhancedCompound >= 0.05) return 'positive';
+if (enhancedCompound <= -0.05) return 'negative';
+return 'neutral';
+```
+
+## 📊 API Endpoints (v2.0)
+
+### Core Endpoints
 - `GET /api/sentiment` - API information and available endpoints
-- `GET /api/sentiment/posts/:ticker` - Get recent posts with sentiment
-- `GET /api/sentiment/stats/:ticker` - Get sentiment statistics
-- `GET /api/sentiment/timeline/:ticker` - Get hourly sentiment timeline
-- `GET /api/sentiment/top/:ticker` - Get top posts by sentiment
+- `GET /api/sentiment/current/:ticker` - Get latest sentiment snapshot
+- `GET /api/sentiment/snapshots/:ticker` - Get recent sentiment snapshots
+- `GET /api/sentiment/stats/:ticker` - Get aggregated sentiment statistics
+- `GET /api/sentiment/timeline/:ticker` - Get sentiment timeline data
+- `GET /api/sentiment/top/:ticker` - Get top sentiment snapshots by confidence
 - `GET /api/sentiment/health` - Health check and system status
+
+### Data Models
+
+#### SentimentSnapshot Schema
+```javascript
+{
+  ticker: "SPY",
+  timestamp: "2025-10-08T20:30:01.583Z",
+  timeWindow: "5min",
+  totalPosts: 54,
+  sentimentBreakdown: {
+    positive: { count: 25, avgScore: 0.78 },
+    negative: { count: 11, avgScore: 0.23 },
+    neutral: { count: 18, avgScore: 0.52 }
+  },
+  sources: {
+    reddit: { count: 4, sentiment: { positive: 2, negative: 1, neutral: 1 } },
+    stocktwits: { count: 30, sentiment: { positive: 15, negative: 7, neutral: 8 } },
+    news: { count: 20, sentiment: { positive: 8, negative: 3, neutral: 9 } }
+  },
+  overallSentiment: "bullish",
+  overallScore: 0.76,
+  confidence: 0.46,
+  volatility: 0.12
+}
+```
 
 **Example Usage:**
 ```bash
+# Get current SPY sentiment
+curl https://stocksentiment-e3cfd7d49077.herokuapp.com/api/sentiment/current/SPY
+
 # Get SPY sentiment stats for last 24 hours
 curl https://stocksentiment-e3cfd7d49077.herokuapp.com/api/sentiment/stats/SPY?hours=24
 
-# Get recent SPY posts
-curl https://stocksentiment-e3cfd7d49077.herokuapp.com/api/sentiment/posts/SPY?limit=10
+# Get recent sentiment snapshots
+curl https://stocksentiment-e3cfd7d49077.herokuapp.com/api/sentiment/snapshots/SPY?limit=10
+
+# Get sentiment timeline
+curl https://stocksentiment-e3cfd7d49077.herokuapp.com/api/sentiment/timeline/SPY?hours=24
 
 # Check system health
 curl https://stocksentiment-e3cfd7d49077.herokuapp.com/api/sentiment/health
@@ -203,6 +270,44 @@ Services will be available at:
 - Backend API: http://localhost:5000
 - MongoDB: localhost:27017
 
+## 🔄 Worker Process Details
+
+### Ingestion Worker (`ingestionWorker.js`)
+The background worker is the heart of the data collection system:
+
+#### Process Flow
+1. **Initialization**: Connects to MongoDB and initializes VADER sentiment analyzer
+2. **Data Fetching**: Parallel requests to Reddit, StockTwits, and News APIs
+3. **Batch Processing**: Processes posts in batches of 10 for memory efficiency
+4. **Sentiment Analysis**: VADER + finance keyword enhancement for each post
+5. **Aggregation**: Creates sentiment snapshots with breakdowns by source and sentiment
+6. **Storage**: Saves aggregated snapshots to MongoDB
+7. **Cleanup**: Clears processed data from memory
+
+#### Scheduling
+- **Ingestion**: Every 15 minutes (`*/15 * * * *`)
+- **End-of-Day Cleanup**: Daily at 4:00 PM EST (`0 21 * * *`)
+- **TTL Indexes**: Automatic cleanup after 30 days
+
+#### Memory Management
+- **Batch Processing**: 10 posts per batch to prevent memory overflow
+- **Immediate Cleanup**: Individual posts discarded after processing
+- **Aggregated Storage**: Only sentiment snapshots stored long-term
+
+### Data Processing Pipeline
+```mermaid
+graph TD
+    A[Worker Starts] --> B[Fetch from APIs]
+    B --> C[Batch Processing]
+    C --> D[Sentiment Analysis]
+    D --> E[Aggregate Data]
+    E --> F[Create Snapshot]
+    F --> G[Save to MongoDB]
+    G --> H[Memory Cleanup]
+    H --> I[Wait 15 minutes]
+    I --> A
+```
+
 ## 📈 Performance & Scaling
 
 ### Current Metrics
@@ -211,25 +316,71 @@ Services will be available at:
 - **API Response Time**: <200ms average
 - **Uptime**: 99.9% (Heroku + Vercel)
 - **Database**: 235+ posts collected and analyzed
+- **Snapshot Creation**: 5-minute aggregated windows
+- **Data Retention**: 30-day TTL with daily cleanup
 
 ### Scaling Considerations
 - **Database**: MongoDB Atlas scales automatically
 - **Backend**: Upgrade to Heroku Standard for more memory
 - **Frontend**: Vercel handles global CDN automatically
 - **Worker**: Can run multiple instances for higher throughput
+- **Memory**: Optimized for 512MB Heroku Basic dyno
 
 ## 🧪 Testing
 
+### Local Testing
 ```bash
 # Backend tests
 cd backend
 npm test
 
-# Test data ingestion
+# Test data ingestion (single run)
 npm run worker -- --once  # Run one ingestion cycle
 
 # Test API endpoints
 curl http://localhost:5000/api/sentiment/health
+curl http://localhost:5000/api/sentiment/current/SPY
+curl http://localhost:5000/api/sentiment/snapshots/SPY?limit=5
+```
+
+### Production Testing
+```bash
+# Test live API endpoints
+curl https://stocksentiment-e3cfd7d49077.herokuapp.com/api/sentiment/health
+curl https://stocksentiment-e3cfd7d49077.herokuapp.com/api/sentiment/current/SPY
+curl https://stocksentiment-e3cfd7d49077.herokuapp.com/api/sentiment/stats/SPY?hours=24
+
+# Check worker status
+heroku ps --app stocksentiment
+heroku logs --tail --app stocksentiment
+```
+
+### Troubleshooting Common Issues
+
+#### Duplicate Time Values on Timeline
+**Problem**: Multiple snapshots with same timestamp on x-axis
+**Cause**: Multiple worker processes running simultaneously
+**Solution**: 
+```bash
+# Check running processes
+heroku ps --app stocksentiment
+
+# Stop duplicate workers
+heroku ps:stop run.XXXX --app stocksentiment
+```
+
+#### Memory Issues
+**Problem**: Worker crashes with R14 (Memory quota exceeded)
+**Cause**: Large sentiment models or inefficient processing
+**Solution**: VADER sentiment analysis (already implemented)
+
+#### CORS Errors
+**Problem**: Frontend can't access backend API
+**Cause**: CORS configuration or missing environment variables
+**Solution**:
+```bash
+# Set CORS origin for production
+heroku config:set CORS_ORIGIN=https://your-frontend.vercel.app --app stocksentiment
 ```
 
 ## 📁 Project Structure
@@ -239,29 +390,65 @@ StockSentiment/
 ├── backend/                    # Node.js/Express API
 │   ├── src/
 │   │   ├── server.js          # Express app entry point
-│   │   ├── config/            # Database configuration
-│   │   ├── models/            # MongoDB schemas
-│   │   ├── routes/            # API endpoints
-│   │   ├── services/          # External APIs + VADER sentiment
-│   │   ├── workers/           # Background data collector
+│   │   ├── config/
+│   │   │   └── database.js    # MongoDB connection
+│   │   ├── models/
+│   │   │   ├── SentimentPost.js      # Legacy post model (cleanup only)
+│   │   │   └── SentimentSnapshot.js  # Aggregated snapshot model
+│   │   ├── routes/
+│   │   │   └── sentiment.js   # API endpoints (v2.0)
+│   │   ├── services/
+│   │   │   ├── sentimentAnalyzer.js  # VADER + finance rules
+│   │   │   ├── redditService.js      # Reddit API integration
+│   │   │   ├── stocktwitsService.js  # StockTwits via RapidAPI
+│   │   │   └── newsService.js        # News API integration
+│   │   ├── workers/
+│   │   │   └── ingestionWorker.js    # Background data collector
 │   │   └── tests/             # Jest test suite
 │   ├── package.json           # Backend dependencies
-│   ├── Procfile              # Heroku deployment config
-│   └── .env                  # Environment variables
+│   ├── env.example           # Environment variables template
+│   └── .env                  # Environment variables (gitignored)
 │
 ├── frontend/                   # React Dashboard
 │   ├── src/
 │   │   ├── App.js             # Main React component
-│   │   ├── components/        # Dashboard, Charts, Feed
-│   │   ├── services/          # API client
+│   │   ├── components/
+│   │   │   ├── SentimentDashboard.js # Main dashboard
+│   │   │   ├── TimelineChart.js      # Recharts timeline
+│   │   │   ├── StatsPanel.js         # Source breakdown
+│   │   │   └── PostsFeed.js          # Legacy component
+│   │   ├── services/
+│   │   │   └── api.js         # API client
+│   │   ├── App.css            # Main styles
 │   │   └── index.js           # React entry point
 │   ├── package.json           # Frontend dependencies
-│   └── vercel.json           # Vercel deployment config
+│   └── public/               # Static assets
 │
-├── docker-compose.yml         # Docker deployment
-├── package.json              # Root package.json for Heroku
-└── README.md                 # This file
+├── Procfile                  # Heroku process configuration
+├── vercel.json              # Vercel deployment configuration
+├── docker-compose.yml       # Docker deployment
+├── package.json             # Root package.json for Heroku
+└── README.md                # This file
 ```
+
+### Key Files Explained
+
+#### Backend Core Files
+- **`server.js`**: Express app with CORS, rate limiting, and route configuration
+- **`ingestionWorker.js`**: Background worker with cron scheduling and memory management
+- **`sentimentAnalyzer.js`**: VADER sentiment analysis with finance keyword enhancement
+- **`SentimentSnapshot.js`**: MongoDB model for aggregated sentiment data with TTL indexes
+
+#### Frontend Core Files
+- **`App.js`**: Main React component with data fetching and state management
+- **`TimelineChart.js`**: Recharts component for sentiment timeline visualization
+- **`StatsPanel.js`**: Source breakdown with sentiment distribution
+- **`api.js`**: Axios-based API client for backend communication
+
+#### Configuration Files
+- **`Procfile`**: Heroku process definitions (web + worker dynos)
+- **`vercel.json`**: Vercel deployment configuration for frontend
+- **`env.example`**: Template for required environment variables
 
 ## 🔧 API Provider Setup
 
@@ -342,6 +529,28 @@ vercel logs https://your-frontend-url.vercel.app
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## 🔧 Recent Updates & Fixes
+
+### v2.0.0 - Optimized Data Architecture (October 2025)
+- **Real-time Aggregation**: Implemented sentiment snapshots with 5-minute windows
+- **Memory Optimization**: Individual posts processed and discarded immediately
+- **TTL Indexes**: Automatic cleanup of old data after 30 days
+- **End-of-Day Cleanup**: Daily maintenance at 4:00 PM EST
+- **Batch Processing**: 10 posts per batch for memory efficiency
+
+### Recent Bug Fixes
+- **Duplicate Timeline Values**: Fixed multiple worker processes creating duplicate snapshots
+- **Time Formatting**: Enhanced timeline to show seconds (HH:mm:ss) for better distinction
+- **CORS Configuration**: Dynamic CORS origin handling for Vercel deployments
+- **Memory Issues**: Switched from FinBERT/DistilBERT to VADER for 512MB Heroku dyno
+- **API Endpoints**: Updated to v2.0 with new snapshot-based architecture
+
+### Performance Improvements
+- **Memory Usage**: Reduced from 400MB+ to ~50MB with VADER
+- **Processing Speed**: Real-time sentiment analysis without model loading
+- **Data Efficiency**: Aggregated storage instead of individual post storage
+- **Timeline Accuracy**: Unique timestamps with second-level precision
+
 ## 🙏 Acknowledgments
 
 - **VADER Sentiment**: For lightweight, effective sentiment analysis
@@ -350,6 +559,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **News API**: For financial news aggregation
 - **Heroku & Vercel**: For seamless cloud deployment
 - **MongoDB Atlas**: For managed database hosting
+- **RapidAPI**: For StockTwits API access
 
 ---
 
