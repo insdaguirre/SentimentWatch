@@ -37,6 +37,8 @@ const StatsPanel = ({ stats, snapshots }) => {
           if (total > 0) {
             const rawScore = (positive - negative) / total; // Range: -1 to 1
             avgScore = (rawScore + 1) / 2; // Scale to 0-1 range
+            // Debug logging (remove in production)
+            console.log(`${source.name}: pos=${positive}, neg=${negative}, neutral=${neutral}, rawScore=${rawScore}, avgScore=${avgScore}`);
           }
           const avgScorePercent = (avgScore * 100).toFixed(1);
 
