@@ -33,6 +33,7 @@ const TimelineChart = ({ data }) => {
             style={{ fontSize: '0.8rem' }}
           />
           <YAxis 
+            domain={[0, 1]}
             stroke="#6b7280"
             style={{ fontSize: '0.8rem' }}
           />

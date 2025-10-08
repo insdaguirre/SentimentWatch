@@ -33,7 +33,11 @@ const StatsPanel = ({ stats, snapshots }) => {
           // Calculate average score from sentiment breakdown
           const { positive, negative, neutral } = data.sentiment;
           const total = positive + negative + neutral;
-          const avgScore = total > 0 ? (positive - negative) / total + 0.5 : 0.5; // Scale to 0-1
+          let avgScore = 0.5; // Default to neutral
+          if (total > 0) {
+            const rawScore = (positive - negative) / total; // Range: -1 to 1
+            avgScore = (rawScore + 1) / 2; // Scale to 0-1 range
+          }
           const avgScorePercent = (avgScore * 100).toFixed(1);
 
           return (
