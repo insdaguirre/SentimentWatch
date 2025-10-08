@@ -131,13 +131,26 @@ router.get('/timeline/:ticker', async (req, res) => {
 
     res.json({
       success: true,
-      data: timeline.map(snapshot => ({
-        timestamp: snapshot.timestamp,
-        overallSentiment: snapshot.overallSentiment,
-        overallScore: snapshot.overallScore,
-        confidence: snapshot.confidence,
-        totalPosts: snapshot.totalPosts
-      }))
+      data: timeline.map(snapshot => {
+        // Calculate overallScore manually since virtual fields don't work with select
+        const { positive, negative, neutral } = snapshot.sentimentBreakdown;
+        const total = positive.count + negative.count + neutral.count;
+        let overallScore = 0.5; // default neutral
+        
+        if (total > 0) {
+          const positiveWeight = positive.count / total;
+          const negativeWeight = negative.count / total;
+          overallScore = positiveWeight - negativeWeight + 0.5; // Scale to 0-1
+        }
+        
+        return {
+          timestamp: snapshot.timestamp,
+          overallSentiment: snapshot.overallSentiment,
+          overallScore: overallScore,
+          confidence: snapshot.confidence,
+          totalPosts: snapshot.totalPosts
+        };
+      })
     });
   } catch (error) {
     console.error('Error fetching timeline:', error);

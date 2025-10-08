@@ -19,14 +19,24 @@ export const fetchStats = async (ticker, hours = 24) => {
   }
 };
 
-export const fetchPosts = async (ticker, limit = 50, source = null) => {
+export const fetchCurrentSentiment = async (ticker) => {
   try {
-    const response = await api.get(`/sentiment/posts/${ticker}`, {
-      params: { limit, source }
+    const response = await api.get(`/sentiment/current/${ticker}`);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching current sentiment:', error);
+    throw error;
+  }
+};
+
+export const fetchSnapshots = async (ticker, limit = 50, timeWindow = '5min') => {
+  try {
+    const response = await api.get(`/sentiment/snapshots/${ticker}`, {
+      params: { limit, timeWindow }
     });
     return response.data.data;
   } catch (error) {
-    console.error('Error fetching posts:', error);
+    console.error('Error fetching snapshots:', error);
     throw error;
   }
 };
@@ -43,14 +53,14 @@ export const fetchTimeline = async (ticker, hours = 24) => {
   }
 };
 
-export const fetchTopPosts = async (ticker, sentiment = 'positive', limit = 10, hours = 24) => {
+export const fetchTopSnapshots = async (ticker, sentiment = 'bullish', limit = 10, hours = 24) => {
   try {
     const response = await api.get(`/sentiment/top/${ticker}`, {
       params: { sentiment, limit, hours }
     });
     return response.data.data;
   } catch (error) {
-    console.error('Error fetching top posts:', error);
+    console.error('Error fetching top snapshots:', error);
     throw error;
   }
 };

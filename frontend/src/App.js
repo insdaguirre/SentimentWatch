@@ -4,12 +4,12 @@ import SentimentDashboard from './components/SentimentDashboard';
 import PostsFeed from './components/PostsFeed';
 import StatsPanel from './components/StatsPanel';
 import TimelineChart from './components/TimelineChart';
-import { fetchStats, fetchPosts, fetchTimeline } from './services/api';
+import { fetchStats, fetchCurrentSentiment, fetchSnapshots, fetchTimeline } from './services/api';
 
 function App() {
   const [ticker] = useState('SPY');
   const [stats, setStats] = useState(null);
-  const [posts, setPosts] = useState([]);
+  const [snapshots, setSnapshots] = useState([]);
   const [timeline, setTimeline] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,14 +20,14 @@ function App() {
       setLoading(true);
       setError(null);
 
-      const [statsData, postsData, timelineData] = await Promise.all([
+      const [statsData, snapshotsData, timelineData] = await Promise.all([
         fetchStats(ticker, 24),
-        fetchPosts(ticker, 50),
+        fetchSnapshots(ticker, 10),
         fetchTimeline(ticker, 24)
       ]);
 
       setStats(statsData);
-      setPosts(postsData);
+      setSnapshots(snapshotsData);
       setTimeline(timelineData);
       setLastUpdate(new Date());
     } catch (err) {
@@ -91,7 +91,7 @@ function App() {
             </div>
 
             <div className="posts-section">
-              <PostsFeed posts={posts} ticker={ticker} />
+              <PostsFeed posts={snapshots} ticker={ticker} />
             </div>
 
             <button className="refresh-button" onClick={loadData} disabled={loading}>
@@ -104,7 +104,7 @@ function App() {
       <footer className="App-footer">
         <p>
           Data from Reddit, StockTwits, and News sources | 
-          Sentiment powered by FinBERT
+          Sentiment powered by VADER with Finance Rules
         </p>
       </footer>
     </div>

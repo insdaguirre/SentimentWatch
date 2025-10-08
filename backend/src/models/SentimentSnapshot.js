@@ -229,7 +229,7 @@ sentimentSnapshotSchema.statics.getTimeline = async function(ticker, hoursBack =
     timeWindow: '5min'
   })
     .sort({ timestamp: 1 })
-    .select('timestamp overallSentiment overallScore confidence totalPosts');
+    .select('timestamp overallSentiment confidence totalPosts sentimentBreakdown');
 };
 
 module.exports = mongoose.model('SentimentSnapshot', sentimentSnapshotSchema);
