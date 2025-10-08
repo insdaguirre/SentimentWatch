@@ -2,6 +2,28 @@ const express = require('express');
 const router = express.Router();
 const SentimentPost = require('../models/SentimentPost');
 
+// General sentiment API info
+router.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Stock Sentiment API',
+    version: '1.0.0',
+    endpoints: {
+      posts: '/api/sentiment/posts/:ticker',
+      stats: '/api/sentiment/stats/:ticker',
+      timeline: '/api/sentiment/timeline/:ticker',
+      top: '/api/sentiment/top/:ticker',
+      health: '/api/sentiment/health'
+    },
+    examples: {
+      posts: '/api/sentiment/posts/SPY',
+      stats: '/api/sentiment/stats/SPY?hours=24',
+      timeline: '/api/sentiment/timeline/SPY?hours=24',
+      top: '/api/sentiment/top/SPY?sentiment=positive&limit=10'
+    }
+  });
+});
+
 // Get recent posts for a ticker
 router.get('/posts/:ticker', async (req, res) => {
   try {

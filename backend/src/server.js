@@ -10,6 +10,9 @@ const sentimentRoutes = require('./routes/sentiment');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust proxy for Heroku (required for rate limiting)
+app.set('trust proxy', 1);
+
 // CORS - must be before helmet
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
