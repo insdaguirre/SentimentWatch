@@ -135,24 +135,6 @@ return 'neutral';
 }
 ```
 
-**Example Usage:**
-```bash
-# Get current SPY sentiment
-curl https://stocksentiment-e3cfd7d49077.herokuapp.com/api/sentiment/current/SPY
-
-# Get SPY sentiment stats for last 24 hours
-curl https://stocksentiment-e3cfd7d49077.herokuapp.com/api/sentiment/stats/SPY?hours=24
-
-# Get recent sentiment snapshots
-curl https://stocksentiment-e3cfd7d49077.herokuapp.com/api/sentiment/snapshots/SPY?limit=10
-
-# Get sentiment timeline
-curl https://stocksentiment-e3cfd7d49077.herokuapp.com/api/sentiment/timeline/SPY?hours=24
-
-# Check system health
-curl https://stocksentiment-e3cfd7d49077.herokuapp.com/api/sentiment/health
-```
-
 ## 🛠️ Technology Stack
 
 ### Backend (Node.js/Express)
@@ -450,26 +432,6 @@ StockSentiment/
 - **`vercel.json`**: Vercel deployment configuration for frontend
 - **`env.example`**: Template for required environment variables
 
-## 🔧 API Provider Setup
-
-### 1. Reddit API (Required)
-1. Go to https://www.reddit.com/prefs/apps
-2. Click "Create App"
-3. Fill in:
-   - Name: `Stock Sentiment App`
-   - Type: `script`
-   - Redirect URI: `http://localhost:8080`
-4. Copy Client ID and Secret
-
-### 2. RapidAPI for StockTwits (Required)
-1. Go to https://rapidapi.com/stocktwits/api/stocktwits
-2. Subscribe to FREE Basic plan
-3. Copy X-RapidAPI-Key (500k requests/month)
-
-### 3. News API (Recommended)
-1. Go to https://newsapi.org/
-2. Sign up for free account
-3. Copy your API key
 
 ## 🚀 Deployment
 
@@ -502,65 +464,10 @@ cd frontend
 vercel --prod
 ```
 
-## 📊 Monitoring
-
-### Health Checks
-- **Backend**: https://stocksentiment-e3cfd7d49077.herokuapp.com/api/sentiment/health
-- **Frontend**: https://frontend-mjdwqm0t3-diego-aguirres-projects-67059f45.vercel.app
-
-### Logs
-```bash
-# Heroku logs
-heroku logs --tail --app stocksentiment
-
-# Vercel logs
-vercel logs https://your-frontend-url.vercel.app
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🔧 Recent Updates & Fixes
-
-### v2.0.0 - Optimized Data Architecture (October 2025)
-- **Real-time Aggregation**: Implemented sentiment snapshots with 5-minute windows
-- **Memory Optimization**: Individual posts processed and discarded immediately
-- **TTL Indexes**: Automatic cleanup of old data after 30 days
-- **End-of-Day Cleanup**: Daily maintenance at 4:00 PM EST
-- **Batch Processing**: 10 posts per batch for memory efficiency
-
-### Recent Bug Fixes
-- **Duplicate Timeline Values**: Fixed multiple worker processes creating duplicate snapshots
-- **Time Formatting**: Enhanced timeline to show seconds (HH:mm:ss) for better distinction
-- **CORS Configuration**: Dynamic CORS origin handling for Vercel deployments
-- **Memory Issues**: Switched from FinBERT/DistilBERT to VADER for 512MB Heroku dyno
-- **API Endpoints**: Updated to v2.0 with new snapshot-based architecture
-
-### Performance Improvements
-- **Memory Usage**: Reduced from 400MB+ to ~50MB with VADER
-- **Processing Speed**: Real-time sentiment analysis without model loading
-- **Data Efficiency**: Aggregated storage instead of individual post storage
-- **Timeline Accuracy**: Unique timestamps with second-level precision
-
-## 🙏 Acknowledgments
-
-- **VADER Sentiment**: For lightweight, effective sentiment analysis
-- **Reddit API**: For access to financial discussion data
-- **StockTwits**: For real-time trading sentiment
-- **News API**: For financial news aggregation
-- **Heroku & Vercel**: For seamless cloud deployment
-- **MongoDB Atlas**: For managed database hosting
-- **RapidAPI**: For StockTwits API access
-
 ---
 
-**Built with ❤️ for the financial community**
+**Built with ❤️**
