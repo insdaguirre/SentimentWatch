@@ -1,3 +1,3 @@
-web: node src/server.js
-worker: node src/workers/ingestionWorker.js
+web: cd backend && node src/server.js
+worker: cd backend && node src/workers/ingestionWorker.js
 
