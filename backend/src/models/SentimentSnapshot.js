@@ -183,6 +183,13 @@ sentimentSnapshotSchema.statics.getSentimentStats = async function(ticker, hours
   let totalConfidence = 0;
   let scores = [];
   
+  // Initialize source breakdown aggregation
+  const sourceBreakdown = {
+    reddit: { count: 0, sentiment: { positive: 0, negative: 0, neutral: 0 } },
+    stocktwits: { count: 0, sentiment: { positive: 0, negative: 0, neutral: 0 } },
+    news: { count: 0, sentiment: { positive: 0, negative: 0, neutral: 0 } }
+  };
+  
   snapshots.forEach(snapshot => {
     totalPosts += snapshot.totalPosts;
     totalPositive += snapshot.sentimentBreakdown.positive.count;
@@ -190,6 +197,22 @@ sentimentSnapshotSchema.statics.getSentimentStats = async function(ticker, hours
     totalNeutral += snapshot.sentimentBreakdown.neutral.count;
     totalConfidence += snapshot.confidence;
     scores.push(snapshot.overallScore);
+    
+    // Aggregate source data
+    sourceBreakdown.reddit.count += snapshot.sources.reddit.count;
+    sourceBreakdown.reddit.sentiment.positive += snapshot.sources.reddit.sentiment.positive;
+    sourceBreakdown.reddit.sentiment.negative += snapshot.sources.reddit.sentiment.negative;
+    sourceBreakdown.reddit.sentiment.neutral += snapshot.sources.reddit.sentiment.neutral;
+    
+    sourceBreakdown.stocktwits.count += snapshot.sources.stocktwits.count;
+    sourceBreakdown.stocktwits.sentiment.positive += snapshot.sources.stocktwits.sentiment.positive;
+    sourceBreakdown.stocktwits.sentiment.negative += snapshot.sources.stocktwits.sentiment.negative;
+    sourceBreakdown.stocktwits.sentiment.neutral += snapshot.sources.stocktwits.sentiment.neutral;
+    
+    sourceBreakdown.news.count += snapshot.sources.news.count;
+    sourceBreakdown.news.sentiment.positive += snapshot.sources.news.sentiment.positive;
+    sourceBreakdown.news.sentiment.negative += snapshot.sources.news.sentiment.negative;
+    sourceBreakdown.news.sentiment.neutral += snapshot.sources.news.sentiment.neutral;
   });
   
   // Calculate volatility (standard deviation of scores)
@@ -215,7 +238,8 @@ sentimentSnapshotSchema.statics.getSentimentStats = async function(ticker, hours
     confidence: totalConfidence / snapshots.length,
     volatility: volatility,
     trend: trend,
-    snapshots: snapshots.length
+    snapshots: snapshots.length,
+    sourceBreakdown: sourceBreakdown
   };
 };
 

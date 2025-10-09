@@ -2,9 +2,8 @@ import React from 'react';
 import './StatsPanel.css';
 
 const StatsPanel = ({ stats, snapshots }) => {
-  // Get source data from the latest snapshot
-  const latestSnapshot = snapshots && snapshots.length > 0 ? snapshots[0] : null;
-  const sourceData = latestSnapshot ? latestSnapshot.sources : null;
+  // Get source data from 24-hour aggregated stats (preferred) or fallback to latest snapshot
+  const sourceData = stats?.overall?.sourceBreakdown || (snapshots && snapshots.length > 0 ? snapshots[0].sources : null);
 
   if (!sourceData) {
     return (
@@ -23,7 +22,7 @@ const StatsPanel = ({ stats, snapshots }) => {
 
   return (
     <div className="stats-panel">
-      <h2>📈 Source Breakdown</h2>
+      <h2>📈 Source Breakdown (24h)</h2>
       
       <div className="source-stats">
         {sources.map(source => {
