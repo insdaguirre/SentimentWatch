@@ -1,15 +1,17 @@
 .timeline-chart h2 {
-  color: #1f2937;
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  font-weight: 700;
+  color: #00ff00;
+  font-size: 14px;
+  margin-bottom: 4px;
+  font-weight: bold;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 .no-data {
   text-align: center;
-  padding: 4rem 2rem;
-  color: #9ca3af;
-  font-size: 1.1rem;
+  padding: 16px;
+  color: #cccccc;
+  font-size: 12px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 .recharts-tooltip-wrapper {

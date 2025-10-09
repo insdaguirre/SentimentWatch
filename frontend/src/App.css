@@ -1,14 +1,15 @@
 .App {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #0a0a0a;
+  color: #00ff00;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 .App-header {
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(10px);
-  padding: 2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
+  background: #0a0a0a;
+  border: 1px solid #00ff00;
+  padding: 8px 16px;
+  margin-bottom: 8px;
 }
 
 .header-content {
@@ -22,10 +23,11 @@
 }
 
 .App-header h1 {
-  color: #667eea;
-  font-size: 2.5rem;
-  font-weight: 700;
+  color: #00ff00;
+  font-size: 16px;
+  font-weight: bold;
   margin: 0;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 .ticker-selector {
@@ -35,46 +37,47 @@
 }
 
 .ticker-badge {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 0.75rem 2rem;
-  border-radius: 50px;
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: 2px;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  background: #0a0a0a;
+  color: #00ff00;
+  padding: 4px 8px;
+  border: 1px solid #00ff00;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 .last-update {
   max-width: 1400px;
-  margin: 1rem auto 0;
-  color: #666;
-  font-size: 0.9rem;
+  margin: 4px auto 0;
+  color: #cccccc;
+  font-size: 12px;
   text-align: right;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 .App-main {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 2rem 4rem;
+  padding: 0 8px 16px;
 }
 
 .loading-container,
 .error-container {
-  background: white;
-  border-radius: 20px;
-  padding: 4rem 2rem;
+  background: #0a0a0a;
+  border: 1px solid #00ff00;
+  padding: 16px;
   text-align: center;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  color: #00ff00;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 .loading-spinner {
-  width: 60px;
-  height: 60px;
-  margin: 0 auto 1rem;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #667eea;
-  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  margin: 0 auto 8px;
+  border: 2px solid #333;
+  border-top: 2px solid #00ff00;
   animation: spin 1s linear infinite;
 }
 
@@ -84,8 +87,9 @@
 }
 
 .error-container {
-  background: #fff3f3;
-  border: 2px solid #ff6b6b;
+  background: #0a0a0a;
+  border: 1px solid #ff0000;
+  color: #ff0000;
 }
 
 .error-icon {
@@ -94,52 +98,54 @@
 }
 
 .retry-button {
-  margin-top: 1rem;
-  padding: 0.75rem 2rem;
-  background: #667eea;
-  color: white;
-  border: none;
-  border-radius: 50px;
-  font-size: 1rem;
-  font-weight: 600;
+  margin-top: 8px;
+  padding: 8px 16px;
+  background: #0a0a0a;
+  color: #00ff00;
+  border: 1px solid #00ff00;
+  font-size: 12px;
+  font-weight: bold;
   cursor: pointer;
-  transition: all 0.3s ease;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 .retry-button:hover {
-  background: #5568d3;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+  background: #00ff00;
+  color: #0a0a0a;
 }
 
 .content-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 2rem;
-  margin: 2rem 0;
+  gap: 8px;
+  margin: 8px 0;
 }
 
 .chart-section,
 .stats-section,
 .posts-section {
-  background: white;
-  border-radius: 20px;
-  padding: 2rem;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  background: #0a0a0a;
+  border: 1px solid #00ff00;
+  padding: 8px;
+  color: #00ff00;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 .snapshots-section {
-  margin-top: 2rem;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 8px;
+  background: #0a0a0a;
+  border: 1px solid #00ff00;
+  padding: 8px;
+  color: #00ff00;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 .snapshots-info h2 {
-  color: #2d3748;
-  margin-bottom: 0.5rem;
-  font-size: 1.5rem;
+  color: #00ff00;
+  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: bold;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 .snapshots-info p {
@@ -243,23 +249,20 @@
 
 .refresh-button {
   display: block;
-  margin: 2rem auto 0;
-  padding: 1rem 3rem;
-  background: white;
-  color: #667eea;
-  border: 2px solid #667eea;
-  border-radius: 50px;
-  font-size: 1.1rem;
-  font-weight: 600;
+  margin: 8px auto 0;
+  padding: 8px 16px;
+  background: #0a0a0a;
+  color: #00ff00;
+  border: 1px solid #00ff00;
+  font-size: 12px;
+  font-weight: bold;
   cursor: pointer;
-  transition: all 0.3s ease;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 .refresh-button:hover:not(:disabled) {
-  background: #667eea;
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+  background: #00ff00;
+  color: #0a0a0a;
 }
 
 .refresh-button:disabled {
@@ -268,11 +271,14 @@
 }
 
 .App-footer {
-  background: rgba(255, 255, 255, 0.95);
-  padding: 2rem;
+  background: #0a0a0a;
+  border: 1px solid #00ff00;
+  padding: 8px;
   text-align: center;
-  color: #666;
-  margin-top: 4rem;
+  color: #cccccc;
+  margin-top: 16px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 12px;
 }
 
 @media (max-width: 768px) {

@@ -1,115 +1,123 @@
 .storage-widget {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  margin-bottom: 1rem;
+  background: #0a0a0a;
+  border: 1px solid #00ff00;
+  padding: 8px;
+  margin-bottom: 4px;
+  color: #00ff00;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 .storage-widget h3 {
-  color: #2d3748;
-  margin-bottom: 1rem;
-  font-size: 1.25rem;
-  font-weight: 600;
+  color: #00ff00;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 .storage-bar-container {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 4px;
+  margin-bottom: 4px;
 }
 
 .storage-bar {
   flex: 1;
-  height: 12px;
-  background: #e2e8f0;
-  border-radius: 6px;
+  height: 8px;
+  background: #333;
+  border: 1px solid #00ff00;
   overflow: hidden;
   position: relative;
 }
 
 .storage-fill {
   height: 100%;
-  border-radius: 6px;
-  transition: width 0.3s ease;
+  transition: none;
   position: relative;
 }
 
 .storage-bar.storage-normal .storage-fill {
-  background: linear-gradient(90deg, #10b981, #34d399);
+  background: #00ff00;
 }
 
 .storage-bar.storage-warning .storage-fill {
-  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  background: #ffff00;
 }
 
 .storage-bar.storage-critical .storage-fill {
-  background: linear-gradient(90deg, #ef4444, #f87171);
+  background: #ff0000;
 }
 
 .storage-percentage {
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: #4a5568;
-  min-width: 50px;
+  font-weight: bold;
+  font-size: 10px;
+  color: #00ff00;
+  min-width: 30px;
   text-align: right;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 .storage-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 4px;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 4px;
 }
 
 .storage-used {
-  font-weight: 600;
-  color: #2d3748;
-  font-size: 0.95rem;
+  font-weight: bold;
+  color: #00ff00;
+  font-size: 10px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 .storage-remaining {
-  color: #6b7280;
-  font-size: 0.9rem;
+  color: #cccccc;
+  font-size: 10px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 .storage-details {
   display: flex;
-  gap: 1.5rem;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .storage-detail-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 4px;
 }
 
 .detail-label {
-  color: #6b7280;
-  font-size: 0.85rem;
+  color: #cccccc;
+  font-size: 10px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 .detail-value {
-  color: #2d3748;
-  font-weight: 600;
-  font-size: 0.85rem;
+  color: #00ff00;
+  font-weight: bold;
+  font-size: 10px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 .storage-loading,
 .storage-error,
 .storage-no-data {
-  color: #6b7280;
+  color: #cccccc;
   font-style: italic;
   text-align: center;
-  padding: 1rem;
+  padding: 8px;
+  font-size: 10px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
 .storage-error {
-  color: #ef4444;
+  color: #ff0000;
 }
 
 /* Responsive design */
