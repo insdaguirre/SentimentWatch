@@ -1,4 +1,4 @@
-# 📈 Stock Sentiment Tracker
+# 📈 Sentiment Watch 
 
 A production-ready finance app that tracks real-time sentiment across Reddit, StockTwits, and news sources for stock tickers (starting with SPY). Data is ingested into MongoDB, enriched with VADER sentiment analysis enhanced with finance-specific rules, and exposed via a Node.js/Express API with a beautiful React frontend.
 
