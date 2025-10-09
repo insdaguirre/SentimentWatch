@@ -18,12 +18,6 @@ A production-ready finance app that tracks real-time sentiment across Reddit, St
 - **Source Breakdown**: See sentiment distribution by platform (Reddit, StockTwits, News)
 - **Cloud Deployment**: Live on Heroku (backend) + Vercel (frontend) + MongoDB Atlas
 
-## 🚀 Live Application
-
-**Frontend**: https://frontend-mjdwqm0t3-diego-aguirres-projects-67059f45.vercel.app  
-**Backend API**: https://stocksentiment-e3cfd7d49077.herokuapp.com  
-**API Health**: https://stocksentiment-e3cfd7d49077.herokuapp.com/api/sentiment/health
-
 ## 🏗️ Architecture
 
 ```mermaid
