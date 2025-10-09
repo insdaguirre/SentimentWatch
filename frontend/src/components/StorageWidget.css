@@ -1,0 +1,130 @@
+.storage-widget {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+}
+
+.storage-widget h3 {
+  color: #2d3748;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.storage-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.storage-bar {
+  flex: 1;
+  height: 12px;
+  background: #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.storage-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.storage-bar.storage-normal .storage-fill {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.storage-bar.storage-warning .storage-fill {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.storage-bar.storage-critical .storage-fill {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+.storage-percentage {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #4a5568;
+  min-width: 50px;
+  text-align: right;
+}
+
+.storage-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.storage-used {
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 0.95rem;
+}
+
+.storage-remaining {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.storage-details {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.storage-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.detail-label {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.detail-value {
+  color: #2d3748;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.storage-loading,
+.storage-error,
+.storage-no-data {
+  color: #6b7280;
+  font-style: italic;
+  text-align: center;
+  padding: 1rem;
+}
+
+.storage-error {
+  color: #ef4444;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .storage-widget {
+    padding: 1rem;
+  }
+  
+  .storage-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .storage-details {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}

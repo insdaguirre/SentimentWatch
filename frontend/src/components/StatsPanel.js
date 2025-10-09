@@ -1,9 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './StatsPanel.css';
+import StorageWidget from './StorageWidget';
+import { fetchStorage } from '../services/api';
 
 const StatsPanel = ({ stats, snapshots }) => {
+  // Storage state
+  const [storageInfo, setStorageInfo] = useState(null);
+  const [storageLoading, setStorageLoading] = useState(true);
+  const [storageError, setStorageError] = useState(null);
+
   // Get source data from 24-hour aggregated stats (preferred) or fallback to latest snapshot
   const sourceData = stats?.overall?.sourceBreakdown || (snapshots && snapshots.length > 0 ? snapshots[0].sources : null);
+
+  // Fetch storage info on component mount
+  useEffect(() => {
+    const loadStorageInfo = async () => {
+      try {
+        setStorageLoading(true);
+        setStorageError(null);
+        const data = await fetchStorage();
+        setStorageInfo(data);
+      } catch (error) {
+        console.error('Error loading storage info:', error);
+        setStorageError(error.message);
+      } finally {
+        setStorageLoading(false);
+      }
+    };
+
+    loadStorageInfo();
+  }, []);
 
   if (!sourceData) {
     return (
@@ -78,6 +104,12 @@ const StatsPanel = ({ stats, snapshots }) => {
           <span className="summary-value">{stats.period}</span>
         </div>
       </div>
+
+      <StorageWidget 
+        storageInfo={storageInfo}
+        loading={storageLoading}
+        error={storageError}
+      />
     </div>
   );
 };

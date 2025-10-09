@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const SentimentPost = require('../models/SentimentPost');
 const SentimentSnapshot = require('../models/SentimentSnapshot');
+const { formatBytes, calculateUsagePercent, getStorageColor } = require('../utils/storageUtils');
 
 // General sentiment API info
 router.get('/', (req, res) => {
@@ -190,6 +191,42 @@ router.get('/top/:ticker', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch top snapshots'
+    });
+  }
+});
+
+// Get database storage information
+router.get('/storage', async (req, res) => {
+  try {
+    const db = require('mongoose').connection.db;
+    const stats = await db.stats();
+    
+    // Calculate storage usage
+    const usedBytes = stats.dataSize + stats.indexSize;
+    const maxBytes = 512 * 1024 * 1024; // 512MB in bytes
+    const usedPercent = calculateUsagePercent(usedBytes, maxBytes);
+    const remainingBytes = Math.max(0, maxBytes - usedBytes);
+    
+    res.json({
+      success: true,
+      data: {
+        used: usedBytes,
+        max: maxBytes,
+        usedPercent: usedPercent,
+        usedFormatted: formatBytes(usedBytes),
+        maxFormatted: '512 MB',
+        remaining: remainingBytes,
+        remainingFormatted: formatBytes(remainingBytes),
+        collections: stats.collections,
+        indexes: stats.indexes,
+        colorClass: getStorageColor(usedPercent)
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching storage info:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch storage information'
     });
   }
 });
