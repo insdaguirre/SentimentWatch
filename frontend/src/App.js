@@ -51,11 +51,18 @@ function App() {
       <header className="App-header">
         <div className="header-content">
           <div className="header-title">
-            <h1>📈 Sentiment Watch</h1>
+            <h1>📈 SentimentWatch</h1>
             <div className="header-subtitle">DeegzDev</div>
           </div>
           <div className="ticker-selector">
-            <span className="ticker-badge">{ticker}</span>
+            <a 
+              href="https://www.tradingview.com/symbols/AMEX-SPY/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="ticker-badge"
+            >
+              ${ticker}
+            </a>
           </div>
         </div>
         {lastUpdate && (
