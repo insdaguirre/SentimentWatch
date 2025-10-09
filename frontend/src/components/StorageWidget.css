@@ -120,6 +120,63 @@
   color: #ff0000;
 }
 
+/* Dyno Stats Styling */
+.dyno-stats {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #333;
+}
+
+.dyno-stats h4 {
+  color: #00ff00;
+  font-size: 10px;
+  font-weight: bold;
+  margin-bottom: 4px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+.dyno-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dyno-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+.dyno-label {
+  color: #cccccc;
+}
+
+.dyno-value {
+  color: #00ff00;
+  font-weight: bold;
+}
+
+.dyno-value.dyno-up {
+  color: #00ff00;
+}
+
+.dyno-value.dyno-idle {
+  color: #ffff00;
+}
+
+.dyno-value.dyno-down {
+  color: #ff0000;
+}
+
+.dyno-value.dyno-crashed {
+  color: #ff0000;
+}
+
+.dyno-value.dyno-starting {
+  color: #ffff00;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .storage-widget {

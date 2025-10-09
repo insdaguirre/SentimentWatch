@@ -29,7 +29,7 @@ const StorageWidget = ({ storageInfo, loading, error }) => {
     );
   }
 
-  const { usedFormatted, maxFormatted, usedPercent, remainingFormatted, colorClass } = storageInfo;
+  const { usedFormatted, maxFormatted, usedPercent, remainingFormatted, colorClass, dyno } = storageInfo;
 
   return (
     <div className="storage-widget">
@@ -66,6 +66,43 @@ const StorageWidget = ({ storageInfo, loading, error }) => {
           <span className="detail-value">{storageInfo.indexes}</span>
         </div>
       </div>
+
+      {/* Heroku Dyno Stats Section */}
+      {dyno && (
+        <div className="dyno-stats">
+          <h4>🚀 Heroku Dyno</h4>
+          <div className="dyno-info">
+            <div className="dyno-item">
+              <span className="dyno-label">State:</span>
+              <span className={`dyno-value dyno-${dyno.state}`}>
+                {dyno.state}
+              </span>
+            </div>
+            <div className="dyno-item">
+              <span className="dyno-label">Size:</span>
+              <span className="dyno-value">{dyno.size}</span>
+            </div>
+            {dyno.load && (
+              <div className="dyno-item">
+                <span className="dyno-label">Load:</span>
+                <span className="dyno-value">{dyno.load}</span>
+              </div>
+            )}
+            {dyno.memory && (
+              <div className="dyno-item">
+                <span className="dyno-label">Memory:</span>
+                <span className="dyno-value">{dyno.memory}</span>
+              </div>
+            )}
+            {dyno.cpu && (
+              <div className="dyno-item">
+                <span className="dyno-label">CPU:</span>
+                <span className="dyno-value">{dyno.cpu}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

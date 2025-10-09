@@ -3,6 +3,7 @@ const router = express.Router();
 const SentimentPost = require('../models/SentimentPost');
 const SentimentSnapshot = require('../models/SentimentSnapshot');
 const { formatBytes, calculateUsagePercent, getStorageColor } = require('../utils/storageUtils');
+const { getHerokuDynoStats, formatDynoStats } = require('../utils/herokuUtils');
 
 // General sentiment API info
 router.get('/', (req, res) => {
@@ -207,6 +208,15 @@ router.get('/storage', async (req, res) => {
     const usedPercent = calculateUsagePercent(usedBytes, maxBytes);
     const remainingBytes = Math.max(0, maxBytes - usedBytes);
     
+    // Get Heroku dyno stats
+    let dynoStats = null;
+    try {
+      const dynos = await getHerokuDynoStats();
+      dynoStats = formatDynoStats(dynos);
+    } catch (herokuError) {
+      console.warn('Could not fetch Heroku dyno stats:', herokuError.message);
+    }
+    
     res.json({
       success: true,
       data: {
@@ -219,7 +229,8 @@ router.get('/storage', async (req, res) => {
         remainingFormatted: formatBytes(remainingBytes),
         collections: stats.collections,
         indexes: stats.indexes,
-        colorClass: getStorageColor(usedPercent)
+        colorClass: getStorageColor(usedPercent),
+        dyno: dynoStats
       }
     });
   } catch (error) {
