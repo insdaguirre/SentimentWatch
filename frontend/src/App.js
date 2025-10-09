@@ -50,7 +50,10 @@ function App() {
     <div className="App">
       <header className="App-header">
         <div className="header-content">
-          <h1>📈 Stock Sentiment Tracker</h1>
+          <div className="header-title">
+            <h1>📈 Stock Sentiment Tracker</h1>
+            <div className="header-subtitle">DeegzDev</div>
+          </div>
           <div className="ticker-selector">
             <span className="ticker-badge">{ticker}</span>
           </div>
