@@ -3,6 +3,7 @@ const cron = require('node-cron');
 const connectDB = require('../config/database');
 const SentimentPost = require('../models/SentimentPost');
 const SentimentSnapshot = require('../models/SentimentSnapshot');
+const ProcessedPostId = require('../models/ProcessedPostId');
 const redditService = require('../services/redditService');
 const stocktwitsService = require('../services/stocktwitsService');
 const newsService = require('../services/newsService');
@@ -12,16 +13,46 @@ class IngestionWorker {
   constructor() {
     this.isRunning = false;
     this.tickers = ['SPY']; // Start with SPY only
+    
+    // In-memory deduplication cache
+    this.processedPostIds = new Map(); // ticker -> Set of sourceIds
+    this.maxCacheSize = 5000; // Per ticker limit
+    this.lastCleanup = Date.now();
+    this.cleanupInterval = 24 * 60 * 60 * 1000; // 24 hours
   }
 
   async initialize() {
     try {
       await connectDB();
       await sentimentAnalyzer.initialize();
+      
+      // Load recent processed IDs from database on startup
+      await this.loadRecentProcessedIds();
+      
       console.log('Ingestion worker initialized');
     } catch (error) {
       console.error('Error initializing worker:', error);
       process.exit(1);
+    }
+  }
+
+  async loadRecentProcessedIds() {
+    // Load IDs from last 24 hours to avoid duplicates after restart
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    
+    for (const ticker of this.tickers) {
+      try {
+        const recentIds = await ProcessedPostId.find({
+          ticker: ticker,
+          processedAt: { $gte: twentyFourHoursAgo }
+        }).select('sourceId');
+        
+        this.processedPostIds.set(ticker, new Set(recentIds.map(r => r.sourceId)));
+        console.log(`Loaded ${recentIds.length} recent processed IDs for ${ticker}`);
+      } catch (error) {
+        console.error(`Error loading processed IDs for ${ticker}:`, error);
+        this.processedPostIds.set(ticker, new Set());
+      }
     }
   }
 
@@ -52,26 +83,46 @@ class IngestionWorker {
     try {
       // Fetch from all sources in parallel
       const [redditPosts, stocktwitsPosts, newsArticles] = await Promise.all([
-        redditService.searchPosts(ticker, 25),
+        redditService.searchPosts(ticker, 75), // Increased to 75 posts
         stocktwitsService.getMessages(ticker, 30),
         newsService.getNews(ticker, 20)
       ]);
 
       const allPosts = [...redditPosts, ...stocktwitsPosts, ...newsArticles];
-      console.log(`Total posts fetched: ${allPosts.length}`);
+      
+      // Get or create ticker's processed IDs set
+      if (!this.processedPostIds.has(ticker)) {
+        this.processedPostIds.set(ticker, new Set());
+      }
+      const tickerProcessedIds = this.processedPostIds.get(ticker);
+      
+      // Filter out already processed posts
+      const newPosts = allPosts.filter(post => 
+        !tickerProcessedIds.has(post.sourceId)
+      );
+      
+      console.log(`Total posts fetched: ${allPosts.length}, New posts: ${newPosts.length}`);
 
-      if (allPosts.length === 0) {
-        console.log(`${ticker}: No posts to process`);
+      if (newPosts.length === 0) {
+        console.log(`${ticker}: No new posts to process`);
         return;
       }
 
-      // Process posts in batches for memory efficiency
+      // Add new IDs to cache
+      newPosts.forEach(post => {
+        tickerProcessedIds.add(post.sourceId);
+      });
+
+      // Cleanup cache if it gets too large
+      this.cleanupCacheIfNeeded(ticker);
+
+      // Process only new posts in batches for memory efficiency
       const batchSize = 10;
       const sentiments = [];
       const processedPosts = [];
 
-      for (let i = 0; i < allPosts.length; i += batchSize) {
-        const batch = allPosts.slice(i, i + batchSize);
+      for (let i = 0; i < newPosts.length; i += batchSize) {
+        const batch = newPosts.slice(i, i + batchSize);
         
         // Analyze sentiment for batch
         const batchSentiments = await Promise.all(
@@ -92,7 +143,10 @@ class IngestionWorker {
       // Save snapshot to database
       await SentimentSnapshot.create(snapshot);
       
-      console.log(`${ticker}: Created sentiment snapshot with ${processedPosts.length} posts`);
+      // Persist new IDs to database (async, non-blocking)
+      this.persistProcessedIds(ticker, newPosts);
+      
+      console.log(`${ticker}: Created sentiment snapshot with ${processedPosts.length} new posts`);
       console.log(`Sentiment breakdown: ${snapshot.sentimentBreakdown.positive.count} positive, ${snapshot.sentimentBreakdown.negative.count} negative, ${snapshot.sentimentBreakdown.neutral.count} neutral`);
       
       // Clear processed data from memory
@@ -188,6 +242,58 @@ class IngestionWorker {
     return snapshot;
   }
 
+  cleanupCacheIfNeeded(ticker) {
+    const tickerProcessedIds = this.processedPostIds.get(ticker);
+    if (tickerProcessedIds && tickerProcessedIds.size > this.maxCacheSize) {
+      // Keep only the most recent half
+      const idsArray = Array.from(tickerProcessedIds);
+      const keepIds = idsArray.slice(-this.maxCacheSize / 2);
+      tickerProcessedIds.clear();
+      keepIds.forEach(id => tickerProcessedIds.add(id));
+      console.log(`Cleaned up cache for ${ticker}, kept ${keepIds.length} recent IDs`);
+    }
+  }
+
+  async persistProcessedIds(ticker, newPosts) {
+    try {
+      // Non-blocking persistence
+      const idsToStore = newPosts.map(post => ({
+        sourceId: post.sourceId,
+        ticker: post.ticker
+      }));
+      
+      if (idsToStore.length > 0) {
+        await ProcessedPostId.insertMany(idsToStore, { ordered: false });
+        console.log(`Persisted ${idsToStore.length} new processed IDs for ${ticker}`);
+      }
+    } catch (error) {
+      // Ignore duplicate key errors (race conditions)
+      if (!error.message.includes('duplicate key')) {
+        console.error('Error persisting processed IDs:', error);
+      }
+    }
+  }
+
+  // Periodic cleanup of old IDs from memory
+  async periodicCleanup() {
+    const now = Date.now();
+    if (now - this.lastCleanup > this.cleanupInterval) {
+      console.log('Performing periodic cache cleanup...');
+      
+      // Remove IDs older than 24 hours from memory
+      for (const [ticker, idSet] of this.processedPostIds) {
+        if (idSet.size > this.maxCacheSize) {
+          const idsArray = Array.from(idSet);
+          idSet.clear();
+          idsArray.slice(-this.maxCacheSize / 2).forEach(id => idSet.add(id));
+        }
+      }
+      
+      this.lastCleanup = now;
+      console.log('Periodic cache cleanup completed');
+    }
+  }
+
   async runOnce() {
     await this.initialize();
     await this.ingestData();
@@ -206,7 +312,8 @@ class IngestionWorker {
     
     console.log(`Scheduling ingestion every ${intervalMinutes} minutes`);
     
-    cron.schedule(cronSchedule, () => {
+    cron.schedule(cronSchedule, async () => {
+      await this.periodicCleanup(); // Cleanup before each ingestion
       this.ingestData();
     });
 
