@@ -1,6 +1,6 @@
 # 📈 SentimentWatch 
 
-A production-ready finance app that tracks real-time sentiment across Reddit, StockTwits, and news sources for stock tickers (starting with SPY). Data is ingested into MongoDB, enriched with VADER sentiment analysis enhanced with finance-specific rules, and exposed via a Node.js/Express API with a beautiful React frontend.
+A production-ready finance app that tracks real-time sentiment across Reddit, StockTwits, news sources, and Finnhub for stock tickers (starting with SPY). Data is ingested into MongoDB, enriched with VADER sentiment analysis enhanced with finance-specific rules, and exposed via a Node.js/Express API with a beautiful React frontend.
 
 ![Architecture](https://img.shields.io/badge/Stack-MERN-green)
 ![License](https://img.shields.io/badge/License-MIT-blue)
@@ -9,13 +9,13 @@ A production-ready finance app that tracks real-time sentiment across Reddit, St
 
 ## 🎯 Features
 
-- **Multi-Source Sentiment Analysis**: Aggregates data from Reddit, StockTwits, and news outlets
+- **Multi-Source Sentiment Analysis**: Aggregates data from Reddit, StockTwits, news outlets, and Finnhub
 - **AI-Powered Insights**: Uses VADER sentiment analysis enhanced with 40+ finance-specific keywords
 - **Real-Time Dashboard**: Beautiful React frontend with live sentiment metrics
 - **Automated Data Collection**: Background worker ingests data every 15 minutes
 - **RESTful API**: Well-documented Express API with rate limiting and CORS
 - **Timeline Visualization**: Track sentiment trends over time with interactive charts
-- **Source Breakdown**: See sentiment distribution by platform (Reddit, StockTwits, News)
+- **Source Breakdown**: See sentiment distribution by platform (Reddit, StockTwits, News, Finnhub)
 - **Cloud Deployment**: Live on Heroku (backend) + Vercel (frontend) + MongoDB Atlas
 
 ## 🏗️ Architecture
@@ -26,30 +26,31 @@ flowchart LR
         A[Reddit API] -->|posts| B[Ingestion Worker]
         C[StockTwits via RapidAPI] -->|messages| B
         D[News API] -->|headlines| B
+        E[Finnhub API] -->|articles| B
     end
 
-    B -->|normalize & dedupe| E[VADER + Finance Rules]
-    E -->|sentiment scores| F[MongoDB Atlas]
+    B -->|normalize & dedupe| F[VADER + Finance Rules]
+    F -->|sentiment scores| G[MongoDB Atlas]
     
-    F -->|query| G[Express API on Heroku]
-    G -->|CORS enabled| H[React Frontend on Vercel]
+    G -->|query| H[Express API on Heroku]
+    H -->|CORS enabled| I[React Frontend on Vercel]
     
     subgraph "Deployment"
-        I[Heroku Basic Dyno]
-        J[Vercel Static Hosting]
-        K[MongoDB Atlas Cloud]
+        J[Heroku Basic Dyno]
+        K[Vercel Static Hosting]
+        L[MongoDB Atlas Cloud]
     end
     
-    G -.->|deployed on| I
     H -.->|deployed on| J
-    F -.->|hosted on| K
+    I -.->|deployed on| K
+    G -.->|hosted on| L
 ```
 
 ## 🧠 How It Works
 
 ### Data Flow Architecture
 1. **Data Collection**: Background worker runs every 15 minutes
-2. **Multi-Source Ingestion**: Fetches from Reddit, StockTwits, and News APIs
+2. **Multi-Source Ingestion**: Fetches from Reddit, StockTwits, News, and Finnhub APIs
 3. **Sentiment Analysis**: VADER + finance-specific keyword enhancement
 4. **Real-Time Aggregation**: Creates 5-minute sentiment snapshots
 5. **API Exposure**: Express.js serves aggregated data via REST endpoints
@@ -61,6 +62,8 @@ flowchart LR
 - **TTL Indexes**: Automatic cleanup of old data (30-day retention)
 - **End-of-Day Cleanup**: Daily maintenance at 4:00 PM EST
 - **Real-Time Processing**: Batch processing for memory optimization
+- **Deduplication System**: In-memory ID tracking prevents duplicate processing
+- **Multi-Source Integration**: Reddit (75), StockTwits (30), News (20), Finnhub (8) posts per cycle
 
 ### Sentiment Analysis Engine
 
@@ -92,6 +95,14 @@ if (enhancedCompound <= -0.05) return 'negative';
 return 'neutral';
 ```
 
+### Deduplication System (v2.1)
+- **In-Memory Caching**: JavaScript Sets for O(1) lookup time
+- **ID-Based Tracking**: Uses unique source IDs (reddit_123, finnhub_456, etc.)
+- **Persistent Storage**: ProcessedPostId collection with 7-day TTL
+- **Memory Management**: Automatic cleanup prevents memory bloat
+- **Cross-Source Deduplication**: Prevents duplicate processing across all sources
+- **Restart Resilience**: Loads recent IDs on startup to prevent duplicates
+
 ## 📊 API Endpoints (v2.0)
 
 ### Core Endpoints
@@ -120,7 +131,8 @@ return 'neutral';
   sources: {
     reddit: { count: 4, sentiment: { positive: 2, negative: 1, neutral: 1 } },
     stocktwits: { count: 30, sentiment: { positive: 15, negative: 7, neutral: 8 } },
-    news: { count: 20, sentiment: { positive: 8, negative: 3, neutral: 9 } }
+    news: { count: 20, sentiment: { positive: 8, negative: 3, neutral: 9 } },
+    finnhub: { count: 8, sentiment: { positive: 3, negative: 2, neutral: 3 } }
   },
   overallSentiment: "bullish",
   overallScore: 0.76,
@@ -136,7 +148,7 @@ return 'neutral';
 - **Framework**: Express.js with middleware (CORS, Helmet, Rate Limiting)
 - **Database**: MongoDB Atlas with Mongoose ODM
 - **Sentiment**: VADER with custom finance rules
-- **APIs**: Reddit (Snoowrap), StockTwits (RapidAPI), News API
+- **APIs**: Reddit (Snoowrap), StockTwits (RapidAPI), News API, Finnhub API
 - **Deployment**: Heroku Basic Dyno (512MB RAM)
 - **Worker**: Node-cron for scheduled data ingestion
 
@@ -202,6 +214,9 @@ RAPIDAPI_KEY=your_rapidapi_key
 # News API
 NEWS_API_KEY=your_news_api_key
 
+# Finnhub API
+FINNHUB_API_KEY=your_finnhub_api_key
+
 # CORS (for production)
 CORS_ORIGIN=https://your-frontend-domain.vercel.app
 ```
@@ -253,7 +268,7 @@ The background worker is the heart of the data collection system:
 
 #### Process Flow
 1. **Initialization**: Connects to MongoDB and initializes VADER sentiment analyzer
-2. **Data Fetching**: Parallel requests to Reddit, StockTwits, and News APIs
+2. **Data Fetching**: Parallel requests to Reddit, StockTwits, News, and Finnhub APIs
 3. **Batch Processing**: Processes posts in batches of 10 for memory efficiency
 4. **Sentiment Analysis**: VADER + finance keyword enhancement for each post
 5. **Aggregation**: Creates sentiment snapshots with breakdowns by source and sentiment
@@ -287,7 +302,7 @@ graph TD
 ## 📈 Performance & Scaling
 
 ### Current Metrics
-- **Data Collection**: 50+ posts per 15-minute cycle
+- **Data Collection**: 75+ posts per 15-minute cycle (Reddit: 75, StockTwits: 30, News: 20, Finnhub: 8)
 - **Memory Usage**: ~50MB (VADER vs 400MB+ for FinBERT)
 - **API Response Time**: <200ms average
 - **Uptime**: 99.9% (Heroku + Vercel)
@@ -377,7 +392,8 @@ StockSentiment/
 │   │   │   ├── sentimentAnalyzer.js  # VADER + finance rules
 │   │   │   ├── redditService.js      # Reddit API integration
 │   │   │   ├── stocktwitsService.js  # StockTwits via RapidAPI
-│   │   │   └── newsService.js        # News API integration
+│   │   │   ├── newsService.js        # News API integration
+│   │   │   └── finnhubService.js     # Finnhub API integration
 │   │   ├── workers/
 │   │   │   └── ingestionWorker.js    # Background data collector
 │   │   └── tests/             # Jest test suite
