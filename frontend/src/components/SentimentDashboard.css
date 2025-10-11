@@ -45,6 +45,11 @@
   gap: 4px;
 }
 
+.sentiment-card-link {
+  text-decoration: none;
+  color: inherit;
+}
+
 .sentiment-card {
   background: #0a0a0a;
   border: 1px solid #00ff00;

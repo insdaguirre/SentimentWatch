@@ -7,6 +7,7 @@ const ProcessedPostId = require('../models/ProcessedPostId');
 const redditService = require('../services/redditService');
 const stocktwitsService = require('../services/stocktwitsService');
 const newsService = require('../services/newsService');
+const finnhubService = require('../services/finnhubService');
 const sentimentAnalyzer = require('../services/sentimentAnalyzer');
 
 class IngestionWorker {
@@ -82,13 +83,14 @@ class IngestionWorker {
 
     try {
       // Fetch from all sources in parallel
-      const [redditPosts, stocktwitsPosts, newsArticles] = await Promise.all([
+      const [redditPosts, stocktwitsPosts, newsArticles, finnhubArticles] = await Promise.all([
         redditService.searchPosts(ticker, 75), // Increased to 75 posts
         stocktwitsService.getMessages(ticker, 30),
-        newsService.getNews(ticker, 20)
+        newsService.getNews(ticker, 20),
+        finnhubService.getNews(ticker, 8) // 8 articles per cycle = ~32/hour (close to 30/hour target)
       ]);
 
-      const allPosts = [...redditPosts, ...stocktwitsPosts, ...newsArticles];
+      const allPosts = [...redditPosts, ...stocktwitsPosts, ...newsArticles, ...finnhubArticles];
       
       // Get or create ticker's processed IDs set
       if (!this.processedPostIds.has(ticker)) {
@@ -176,7 +178,8 @@ class IngestionWorker {
       sources: {
         reddit: { count: 0, sentiment: { positive: 0, negative: 0, neutral: 0 } },
         stocktwits: { count: 0, sentiment: { positive: 0, negative: 0, neutral: 0 } },
-        news: { count: 0, sentiment: { positive: 0, negative: 0, neutral: 0 } }
+        news: { count: 0, sentiment: { positive: 0, negative: 0, neutral: 0 } },
+        finnhub: { count: 0, sentiment: { positive: 0, negative: 0, neutral: 0 } }
       },
       overallSentiment: 'neutral',
       confidence: 0,
@@ -383,7 +386,8 @@ class IngestionWorker {
     let sourceBreakdown = {
       reddit: 0,
       stocktwits: 0,
-      news: 0
+      news: 0,
+      finnhub: 0
     };
     
     todaysSnapshots.forEach(snapshot => {
@@ -397,6 +401,7 @@ class IngestionWorker {
       sourceBreakdown.reddit += snapshot.sources.reddit.count;
       sourceBreakdown.stocktwits += snapshot.sources.stocktwits.count;
       sourceBreakdown.news += snapshot.sources.news.count;
+      sourceBreakdown.finnhub += snapshot.sources.finnhub.count;
     });
     
     const summary = {

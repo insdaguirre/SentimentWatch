@@ -41,9 +41,10 @@ const StatsPanel = ({ stats, snapshots }) => {
   }
 
   const sources = [
-    { key: 'reddit', name: 'Reddit', icon: '🤖', color: '#ff4500' },
-    { key: 'stocktwits', name: 'StockTwits', icon: '💬', color: '#3498db' },
-    { key: 'news', name: 'News', icon: '📰', color: '#2ecc71' }
+    { key: 'reddit', name: 'Reddit', icon: '🤖', color: '#ff4500', url: 'https://www.reddit.com/' },
+    { key: 'stocktwits', name: 'StockTwits', icon: '💬', color: '#3498db', url: 'https://stocktwits.com/' },
+    { key: 'news', name: 'News', icon: '📰', color: '#2ecc71', url: 'https://finance.yahoo.com/' },
+    { key: 'finnhub', name: 'Finnhub', icon: '📊', color: '#9b59b6', url: 'https://finnhub.io/' }
   ];
 
   return (
@@ -68,7 +69,8 @@ const StatsPanel = ({ stats, snapshots }) => {
           const avgScorePercent = (avgScore * 100).toFixed(1);
 
           return (
-            <div key={source.key} className="source-item">
+            <a key={source.key} className="source-link" href={source.url} target="_blank" rel="noopener noreferrer">
+            <div className="source-item">
               <div className="source-header">
                 <span className="source-icon">{source.icon}</span>
                 <span className="source-name">{source.name}</span>
@@ -89,6 +91,7 @@ const StatsPanel = ({ stats, snapshots }) => {
                 ></div>
               </div>
             </div>
+            </a>
           );
         })}
       </div>

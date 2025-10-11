@@ -6,6 +6,7 @@ const SentimentDashboard = ({ stats }) => {
 
   const { overall } = stats;
   const total = overall.total || 0;
+  const paperUrl = 'https://ojs.aaai.org/index.php/ICWSM/article/view/14550';
   
   const positivePercent = total > 0 ? ((overall.positive / total) * 100).toFixed(1) : 0;
   const negativePercent = total > 0 ? ((overall.negative / total) * 100).toFixed(1) : 0;
@@ -38,6 +39,7 @@ const SentimentDashboard = ({ stats }) => {
       </div>
 
       <div className="sentiment-breakdown">
+        <a className="sentiment-card-link" href={paperUrl} target="_blank" rel="noopener noreferrer">
         <div className="sentiment-card positive">
           <div className="sentiment-icon">📈</div>
           <div className="sentiment-info">
@@ -52,7 +54,9 @@ const SentimentDashboard = ({ stats }) => {
             ></div>
           </div>
         </div>
+        </a>
 
+        <a className="sentiment-card-link" href={paperUrl} target="_blank" rel="noopener noreferrer">
         <div className="sentiment-card neutral">
           <div className="sentiment-icon">➡️</div>
           <div className="sentiment-info">
@@ -67,7 +71,9 @@ const SentimentDashboard = ({ stats }) => {
             ></div>
           </div>
         </div>
+        </a>
 
+        <a className="sentiment-card-link" href={paperUrl} target="_blank" rel="noopener noreferrer">
         <div className="sentiment-card negative">
           <div className="sentiment-icon">📉</div>
           <div className="sentiment-info">
@@ -82,6 +88,7 @@ const SentimentDashboard = ({ stats }) => {
             ></div>
           </div>
         </div>
+        </a>
       </div>
     </div>
   );

@@ -12,6 +12,11 @@
   gap: 4px;
 }
 
+.source-link {
+  text-decoration: none;
+  color: inherit;
+}
+
 .source-item {
   background: #0a0a0a;
   border: 1px solid #00ff00;

@@ -11,7 +11,7 @@ const sentimentPostSchema = new mongoose.Schema({
   source: {
     type: String,
     required: true,
-    enum: ['reddit', 'stocktwits', 'news'],
+    enum: ['reddit', 'stocktwits', 'news', 'finnhub'],
     index: true
   },
   sourceId: {
