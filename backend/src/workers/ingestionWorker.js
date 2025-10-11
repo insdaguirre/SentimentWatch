@@ -78,6 +78,29 @@ class IngestionWorker {
     }
   }
 
+  async getStockTwitsPosts(ticker, totalLimit) {
+    // Multi-symbol approach for comprehensive S&P 500 coverage
+    // SPY (70%) + SPX (30%) for better S&P 500 sentiment capture
+    const spyLimit = Math.ceil(totalLimit * 0.7);
+    const spxLimit = Math.ceil(totalLimit * 0.3);
+    
+    try {
+      const [spyPosts, spxPosts] = await Promise.all([
+        stocktwitsService.getMessages('SPY', spyLimit),
+        stocktwitsService.getMessages('SPX', spxLimit)
+      ]);
+      
+      const allStockTwitsPosts = [...spyPosts, ...spxPosts];
+      console.log(`Fetched ${spyPosts.length} SPY posts and ${spxPosts.length} SPX posts (${allStockTwitsPosts.length} total StockTwits posts)`);
+      
+      return allStockTwitsPosts;
+    } catch (error) {
+      console.error('Error fetching multi-symbol StockTwits posts:', error.message);
+      // Fallback to single SPY call if multi-symbol fails
+      return await stocktwitsService.getMessages('SPY', totalLimit);
+    }
+  }
+
   async ingestForTicker(ticker) {
     console.log(`\n=== Ingesting data for ${ticker} ===`);
 
@@ -85,7 +108,7 @@ class IngestionWorker {
       // Fetch from all sources in parallel
       const [redditPosts, stocktwitsPosts, newsArticles, finnhubArticles] = await Promise.all([
         redditService.searchPosts(ticker, 75), // Increased to 75 posts
-        stocktwitsService.getMessages(ticker, 60),
+        this.getStockTwitsPosts(ticker, 60), // Multi-symbol approach: SPY + SPX
         newsService.getNews(ticker, 20),
         finnhubService.getNews(ticker, 8) // 8 articles per cycle = ~32/hour (close to 30/hour target)
       ]);
