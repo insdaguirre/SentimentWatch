@@ -73,6 +73,14 @@ const sentimentSnapshotSchema = new mongoose.Schema({
         negative: { type: Number, default: 0 },
         neutral: { type: Number, default: 0 }
       }
+    },
+    finnhub: {
+      count: { type: Number, default: 0 },
+      sentiment: {
+        positive: { type: Number, default: 0 },
+        negative: { type: Number, default: 0 },
+        neutral: { type: Number, default: 0 }
+      }
     }
   },
   
@@ -187,7 +195,8 @@ sentimentSnapshotSchema.statics.getSentimentStats = async function(ticker, hours
   const sourceBreakdown = {
     reddit: { count: 0, sentiment: { positive: 0, negative: 0, neutral: 0 } },
     stocktwits: { count: 0, sentiment: { positive: 0, negative: 0, neutral: 0 } },
-    news: { count: 0, sentiment: { positive: 0, negative: 0, neutral: 0 } }
+    news: { count: 0, sentiment: { positive: 0, negative: 0, neutral: 0 } },
+    finnhub: { count: 0, sentiment: { positive: 0, negative: 0, neutral: 0 } }
   };
   
   snapshots.forEach(snapshot => {
@@ -213,6 +222,11 @@ sentimentSnapshotSchema.statics.getSentimentStats = async function(ticker, hours
     sourceBreakdown.news.sentiment.positive += snapshot.sources.news.sentiment.positive;
     sourceBreakdown.news.sentiment.negative += snapshot.sources.news.sentiment.negative;
     sourceBreakdown.news.sentiment.neutral += snapshot.sources.news.sentiment.neutral;
+    
+    sourceBreakdown.finnhub.count += snapshot.sources.finnhub.count;
+    sourceBreakdown.finnhub.sentiment.positive += snapshot.sources.finnhub.sentiment.positive;
+    sourceBreakdown.finnhub.sentiment.negative += snapshot.sources.finnhub.sentiment.negative;
+    sourceBreakdown.finnhub.sentiment.neutral += snapshot.sources.finnhub.sentiment.neutral;
   });
   
   // Calculate volatility (standard deviation of scores)
