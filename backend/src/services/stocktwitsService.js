@@ -7,7 +7,7 @@ class StockTwitsService {
     this.rapidApiKey = process.env.RAPIDAPI_KEY;
   }
 
-  async getMessages(ticker, limit = 30) {
+  async getMessages(ticker, limit = 60) {
     try {
       // Check if RapidAPI key is configured
       if (!this.rapidApiKey) {

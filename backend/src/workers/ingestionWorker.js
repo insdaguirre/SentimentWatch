@@ -85,7 +85,7 @@ class IngestionWorker {
       // Fetch from all sources in parallel
       const [redditPosts, stocktwitsPosts, newsArticles, finnhubArticles] = await Promise.all([
         redditService.searchPosts(ticker, 75), // Increased to 75 posts
-        stocktwitsService.getMessages(ticker, 30),
+        stocktwitsService.getMessages(ticker, 60),
         newsService.getNews(ticker, 20),
         finnhubService.getNews(ticker, 8) // 8 articles per cycle = ~32/hour (close to 30/hour target)
       ]);

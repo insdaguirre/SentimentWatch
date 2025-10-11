@@ -63,7 +63,7 @@ flowchart LR
 - **End-of-Day Cleanup**: Daily maintenance at 4:00 PM EST
 - **Real-Time Processing**: Batch processing for memory optimization
 - **Deduplication System**: In-memory ID tracking prevents duplicate processing
-- **Multi-Source Integration**: Reddit (75), StockTwits (30), News (20), Finnhub (8) posts per cycle
+- **Multi-Source Integration**: Reddit (75), StockTwits (60), News (20), Finnhub (8) posts per cycle
 
 ### Sentiment Analysis Engine
 
@@ -302,7 +302,7 @@ graph TD
 ## 📈 Performance & Scaling
 
 ### Current Metrics
-- **Data Collection**: 75+ posts per 15-minute cycle (Reddit: 75, StockTwits: 30, News: 20, Finnhub: 8)
+- **Data Collection**: 163+ posts per 15-minute cycle (Reddit: 75, StockTwits: 60, News: 20, Finnhub: 8)
 - **Memory Usage**: ~50MB (VADER vs 400MB+ for FinBERT)
 - **API Response Time**: <200ms average
 - **Uptime**: 99.9% (Heroku + Vercel)
