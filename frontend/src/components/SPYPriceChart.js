@@ -60,12 +60,31 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
   // Calculate price range for gradient positioning
   const minPrice = Math.min(...data.map(item => item.close));
   const maxPrice = Math.max(...data.map(item => item.close));
-  const priceRange = maxPrice - minPrice;
   
   const chartData = data.map(item => {
     const isAboveAverage = item.close >= dailyAverage;
-    const pricePosition = priceRange > 0 ? (item.close - minPrice) / priceRange : 0.5;
-    
+    let color;
+
+    if (isAboveAverage) {
+      // Gradient for prices above daily average (green shades)
+      const rangeAbove = maxPrice - dailyAverage;
+      // Normalize position from 0 (at dailyAverage) to 1 (at maxPrice)
+      const normalizedPosition = rangeAbove > 0 ? (item.close - dailyAverage) / rangeAbove : 0.5;
+      // Vary lightness: darker green near average, brighter green higher up
+      // Example: lightness from 40% to 70%
+      const lightness = 40 + (normalizedPosition * 30);
+      color = `hsl(120, 100%, ${lightness}%)`; // Hue 120 is green
+    } else {
+      // Gradient for prices below daily average (red shades)
+      const rangeBelow = dailyAverage - minPrice;
+      // Normalize position from 0 (at dailyAverage) to 1 (at minPrice)
+      const normalizedPosition = rangeBelow > 0 ? (dailyAverage - item.close) / rangeBelow : 0.5;
+      // Vary lightness: darker red near average, brighter red lower down
+      // Example: lightness from 40% to 10%
+      const lightness = 40 - (normalizedPosition * 30);
+      color = `hsl(0, 100%, ${lightness}%)`; // Hue 0 is red
+    }
+
     return {
       time: format(new Date(item.timestamp), 'MMM d HH:mm'),
       price: item.close,
@@ -75,8 +94,7 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
       close: item.close,
       volume: item.volume,
       isAboveAverage: isAboveAverage,
-      color: isAboveAverage ? '#00ff00' : '#ff0000',
-      gradientPosition: pricePosition
+      color: color,
     };
   });
 
@@ -182,24 +200,17 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
             dot={false}
             name="SPY Price Line"
           />
-          {/* Scatter points with gradient colors */}
+          {/* Scatter points with individual colors */}
           <Scatter
             dataKey="price"
             data={chartData}
             name="SPY Price Points"
-            fill="url(#priceGradient)"
+            fill="#ffa500"
             r={4}
           >
-            {chartData.map((entry, index) => {
-              // Calculate gradient color based on position
-              const gradientColor = entry.isAboveAverage 
-                ? `hsl(${120 - (entry.gradientPosition * 60)}, 100%, 50%)` // Green to yellow gradient for above average
-                : `hsl(${60 - (entry.gradientPosition * 60)}, 100%, 50%)`; // Yellow to red gradient for below average
-              
-              return (
-                <Cell key={`cell-${index}`} fill={gradientColor} />
-              );
-            })}
+            {chartData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} />
+            ))}
           </Scatter>
           {/* Daily average reference line */}
           <ReferenceLine 
