@@ -57,9 +57,6 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
   // Calculate daily average first
   const dailyAverage = data.reduce((sum, item) => sum + item.close, 0) / data.length;
   
-  // Calculate price range for display
-  const minPrice = Math.min(...data.map(item => item.close));
-  const maxPrice = Math.max(...data.map(item => item.close));
   
   const chartData = data.map(item => {
     const isAboveAverage = item.close >= dailyAverage;
