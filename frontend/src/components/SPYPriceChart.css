@@ -74,6 +74,15 @@
   opacity: 0.8;
 }
 
+.price-status {
+  font-size: 0.7rem;
+  font-weight: bold;
+  margin-top: 2px;
+  font-family: 'Courier New', 'Monaco', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 .loading, .error, .no-data {
   text-align: center;
   padding: 40px;

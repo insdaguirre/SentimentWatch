@@ -81,7 +81,12 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
   const dailyAverageGradientOffset = priceRange > 0 ? ((dailyAverage - minPrice) / priceRange) * 100 : 50;
   
   // Determine line color based on current price vs daily average
+  // This will show green when the line ends above average, red when below
   const lineColor = currentPrice >= dailyAverage ? '#00ff00' : '#ff0000';
+  
+  // Add visual indicator in the price display
+  const priceStatus = currentPrice >= dailyAverage ? 'ABOVE' : 'BELOW';
+  const statusColor = currentPrice >= dailyAverage ? '#00ff00' : '#ff0000';
 
   const formatTimeWindow = (tw) => {
     const windows = {
@@ -108,6 +113,9 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
           </div>
           <div className="average-info">
             Avg: ${dailyAverage.toFixed(2)} ({averagePercent >= 0 ? '+' : ''}{averagePercent.toFixed(1)}%)
+          </div>
+          <div className="price-status" style={{ color: statusColor }}>
+            {priceStatus} AVERAGE
           </div>
         </div>
       </div>
