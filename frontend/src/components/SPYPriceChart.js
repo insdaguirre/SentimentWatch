@@ -58,24 +58,15 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
   const dailyAverage = data.reduce((sum, item) => sum + item.close, 0) / data.length;
   
   
-  const chartData = data.map(item => {
-    const isAboveAverage = item.close >= dailyAverage;
-    
-    // Binary color decision: green if above average, red if below
-    const color = isAboveAverage ? '#00ff00' : '#ff0000';
-
-    return {
-      time: format(new Date(item.timestamp), 'MMM d HH:mm'),
-      price: item.close,
-      open: item.open,
-      high: item.high,
-      low: item.low,
-      close: item.close,
-      volume: item.volume,
-      isAboveAverage: isAboveAverage,
-      color: color,
-    };
-  });
+  const chartData = data.map(item => ({
+    time: format(new Date(item.timestamp), 'MMM d HH:mm'),
+    price: item.close,
+    open: item.open,
+    high: item.high,
+    low: item.low,
+    close: item.close,
+    volume: item.volume
+  }));
 
   const currentPrice = data[data.length - 1]?.close || 0;
   const previousPrice = data[data.length - 2]?.close || currentPrice;
@@ -169,26 +160,14 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
               fontFamily: 'Courier New, Monaco, monospace'
             }}
           />
-          {/* Line with colored dots */}
+          {/* Price line without dots */}
           <Line
             type="monotone"
             dataKey="price"
             stroke="#ffa500"
             strokeWidth={2}
             strokeOpacity={0.6}
-            dot={(props) => {
-              const { cx, cy, payload } = props;
-              return (
-                <circle
-                  cx={cx}
-                  cy={cy}
-                  r={4}
-                  fill={payload.color}
-                  stroke="#ffa500"
-                  strokeWidth={1}
-                />
-              );
-            }}
+            dot={false}
             name="SPY Price Line"
           />
           {/* Daily average reference line */}
