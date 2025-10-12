@@ -74,15 +74,11 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
   const priceVsAverage = currentPrice - dailyAverage;
   const averagePercent = dailyAverage > 0 ? (priceVsAverage / dailyAverage) * 100 : 0;
   
-  // Determine color based on price vs daily average
-  const getPriceColor = (percent) => {
-    if (percent > 1) return '#00ff00'; // Green - significantly above average
-    if (percent > 0) return '#ffa500'; // Orange - above average
-    if (percent > -1) return '#ffff00'; // Yellow - near average
-    return '#ff0000'; // Red - below average
-  };
-  
-  const priceColor = getPriceColor(averagePercent);
+  // Calculate gradient offset for daily average position
+  const minPrice = Math.min(...data.map(item => item.close));
+  const maxPrice = Math.max(...data.map(item => item.close));
+  const priceRange = maxPrice - minPrice;
+  const dailyAverageGradientOffset = priceRange > 0 ? ((dailyAverage - minPrice) / priceRange) * 100 : 50;
 
   const formatTimeWindow = (tw) => {
     const windows = {
@@ -101,7 +97,7 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
       <div className="chart-header">
         <h2>📈 SPY Price Chart ({formatTimeWindow(timeWindow)})</h2>
         <div className="price-info">
-          <div className="current-price" style={{ color: priceColor }}>
+          <div className="current-price">
             ${currentPrice.toFixed(2)}
           </div>
           <div className={`price-change ${change >= 0 ? 'positive' : 'negative'}`}>
@@ -117,8 +113,9 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
         <AreaChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                   <defs>
                     <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={priceColor} stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor={priceColor} stopOpacity={0}/>
+                      <stop offset="0%" stopColor="#00ff00" stopOpacity={0.3}/>
+                      <stop offset={`${dailyAverageGradientOffset}%`} stopColor="#ffa500" stopOpacity={0.3}/>
+                      <stop offset="100%" stopColor="#ff0000" stopOpacity={0.3}/>
                     </linearGradient>
                   </defs>
           <CartesianGrid strokeDasharray="1 1" stroke="#333" strokeOpacity={0.8} />
@@ -158,7 +155,7 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
           <Area
             type="monotone"
             dataKey="price"
-            stroke={priceColor}
+            stroke="#ffa500"
             strokeWidth={2}
             fill="url(#priceGradient)"
             name="SPY Price"
