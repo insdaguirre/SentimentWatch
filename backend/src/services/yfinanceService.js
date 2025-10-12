@@ -149,6 +149,79 @@ class YFinanceService {
     return await this.getSPYData(timeWindow, interval);
   }
 
+  // Calculate volatility from price data
+  calculateVolatility(priceData, period = 30) {
+    if (priceData.length < 2) return { daily: 0, annualized: 0, period: 0 };
+    
+    // Calculate daily returns
+    const returns = [];
+    for (let i = 1; i < priceData.length; i++) {
+      const dailyReturn = (priceData[i].close - priceData[i-1].close) / priceData[i-1].close;
+      returns.push(dailyReturn);
+    }
+    
+    // Calculate mean return
+    const meanReturn = returns.reduce((sum, ret) => sum + ret, 0) / returns.length;
+    
+    // Calculate variance
+    const variance = returns.reduce((sum, ret) => sum + Math.pow(ret - meanReturn, 2), 0) / returns.length;
+    
+    // Annualized volatility (assuming daily data)
+    const annualizedVolatility = Math.sqrt(variance) * Math.sqrt(252);
+    
+    return {
+      daily: Math.sqrt(variance),
+      annualized: annualizedVolatility,
+      period: returns.length
+    };
+  }
+
+  // Calculate Sharpe ratio from price data
+  calculateSharpeRatio(priceData, riskFreeRate = 0.02) {
+    if (priceData.length < 2) return { ratio: 0, annualizedReturn: 0, annualizedVolatility: 0, riskFreeRate: 0 };
+    
+    const returns = [];
+    for (let i = 1; i < priceData.length; i++) {
+      const dailyReturn = (priceData[i].close - priceData[i-1].close) / priceData[i-1].close;
+      returns.push(dailyReturn);
+    }
+    
+    const meanReturn = returns.reduce((sum, ret) => sum + ret, 0) / returns.length;
+    const variance = returns.reduce((sum, ret) => sum + Math.pow(ret - meanReturn, 2), 0) / returns.length;
+    const volatility = Math.sqrt(variance);
+    
+    // Annualized metrics
+    const annualizedReturn = meanReturn * 252;
+    const annualizedVolatility = volatility * Math.sqrt(252);
+    const annualizedRiskFreeRate = riskFreeRate;
+    
+    const sharpeRatio = (annualizedReturn - annualizedRiskFreeRate) / annualizedVolatility;
+    
+    return {
+      ratio: sharpeRatio,
+      annualizedReturn: annualizedReturn,
+      annualizedVolatility: annualizedVolatility,
+      riskFreeRate: annualizedRiskFreeRate
+    };
+  }
+
+  // Get SPY data with metrics
+  async getSPYDataWithMetrics(period = '1d', interval = '1d') {
+    const priceData = await this.getSPYData(period, interval);
+    
+    const volatility = this.calculateVolatility(priceData);
+    const sharpeRatio = this.calculateSharpeRatio(priceData);
+    
+    return {
+      priceData,
+      metrics: {
+        volatility,
+        sharpeRatio,
+        lastUpdated: new Date()
+      }
+    };
+  }
+
   // Health check method
   async healthCheck() {
     try {

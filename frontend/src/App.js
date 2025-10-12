@@ -5,6 +5,7 @@ import SentimentDashboard from './components/SentimentDashboard';
 import StatsPanel from './components/StatsPanel';
 import TimelineChart from './components/TimelineChart';
 import SPYPriceChart from './components/SPYPriceChart';
+import SPYMetricsWidget from './components/SPYMetricsWidget';
 import { fetchStats, fetchSnapshots, fetchTimeline } from './services/api';
 
 function App() {
@@ -97,9 +98,10 @@ function App() {
                 <SPYPriceChart timeWindow="5d" />
               </div>
               
-              <div className="stats-section">
-                <StatsPanel stats={stats} snapshots={snapshots} />
-              </div>
+          <div className="stats-section">
+            <StatsPanel stats={stats} snapshots={snapshots} />
+            <SPYMetricsWidget timeWindow="5d" />
+          </div>
             </div>
 
             <div className="snapshots-section">

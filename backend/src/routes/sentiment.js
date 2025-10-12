@@ -276,6 +276,38 @@ router.get('/spy/:timeWindow', async (req, res) => {
   }
 });
 
+// Get SPY data with metrics (volatility, Sharpe ratio)
+router.get('/spy/metrics/:timeWindow', async (req, res) => {
+  try {
+    const { timeWindow } = req.params;
+    const validTimeWindows = ['1d', '5d', '1mo', '6mo', '1y', '5y'];
+    
+    if (!validTimeWindows.includes(timeWindow)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid time window. Valid options: 1d, 5d, 1mo, 6mo, 1y, 5y'
+      });
+    }
+
+    const data = await yfinanceService.getSPYDataWithMetrics(timeWindow);
+    
+    res.json({
+      success: true,
+      data: {
+        timeWindow,
+        interval: yfinanceService.getOptimalInterval(timeWindow),
+        ...data
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching SPY metrics:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch SPY metrics'
+    });
+  }
+});
+
 // Health check
 router.get('/health', async (req, res) => {
   try {

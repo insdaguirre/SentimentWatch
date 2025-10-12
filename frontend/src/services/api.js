@@ -95,5 +95,15 @@ export const fetchSPYData = async (timeWindow = '1d') => {
   }
 };
 
+export const fetchSPYMetrics = async (timeWindow = '5d') => {
+  try {
+    const response = await api.get(`/sentiment/spy/metrics/${timeWindow}`);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching SPY metrics:', error);
+    throw error;
+  }
+};
+
 export default api;
 
