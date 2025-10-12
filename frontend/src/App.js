@@ -94,7 +94,7 @@ function App() {
             <div className="content-grid">
               <div className="chart-section">
                 <TimelineChart data={timeline} />
-                <SPYPriceChart timeWindow="1d" />
+                <SPYPriceChart timeWindow="5d" />
               </div>
               
               <div className="stats-section">
