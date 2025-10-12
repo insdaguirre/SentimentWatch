@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { format } from 'date-fns';
 import { fetchSPYData } from '../services/api';
 import './SPYPriceChart.css';
@@ -68,6 +68,21 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
   const previousPrice = data[data.length - 2]?.close || currentPrice;
   const change = currentPrice - previousPrice;
   const changePercent = previousPrice > 0 ? (change / previousPrice) * 100 : 0;
+  
+  // Calculate daily average for color coding
+  const dailyAverage = data.reduce((sum, item) => sum + item.close, 0) / data.length;
+  const priceVsAverage = currentPrice - dailyAverage;
+  const averagePercent = dailyAverage > 0 ? (priceVsAverage / dailyAverage) * 100 : 0;
+  
+  // Determine color based on price vs daily average
+  const getPriceColor = (percent) => {
+    if (percent > 1) return '#00ff00'; // Green - significantly above average
+    if (percent > 0) return '#ffa500'; // Orange - above average
+    if (percent > -1) return '#ffff00'; // Yellow - near average
+    return '#ff0000'; // Red - below average
+  };
+  
+  const priceColor = getPriceColor(averagePercent);
 
   const formatTimeWindow = (tw) => {
     const windows = {
@@ -86,9 +101,14 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
       <div className="chart-header">
         <h2>📈 SPY Price Chart ({formatTimeWindow(timeWindow)})</h2>
         <div className="price-info">
-          <div className="current-price">${currentPrice.toFixed(2)}</div>
+          <div className="current-price" style={{ color: priceColor }}>
+            ${currentPrice.toFixed(2)}
+          </div>
           <div className={`price-change ${change >= 0 ? 'positive' : 'negative'}`}>
             {change >= 0 ? '+' : ''}{change.toFixed(2)} ({changePercent.toFixed(2)}%)
+          </div>
+          <div className="average-info">
+            Avg: ${dailyAverage.toFixed(2)} ({averagePercent >= 0 ? '+' : ''}{averagePercent.toFixed(1)}%)
           </div>
         </div>
       </div>
@@ -97,8 +117,8 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
         <AreaChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                   <defs>
                     <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ffa500" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#ffa500" stopOpacity={0}/>
+                      <stop offset="5%" stopColor={priceColor} stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor={priceColor} stopOpacity={0}/>
                     </linearGradient>
                   </defs>
           <CartesianGrid strokeDasharray="1 1" stroke="#333" strokeOpacity={0.8} />
@@ -138,10 +158,18 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
           <Area
             type="monotone"
             dataKey="price"
-            stroke="#ffa500"
+            stroke={priceColor}
             strokeWidth={2}
             fill="url(#priceGradient)"
             name="SPY Price"
+          />
+          {/* Daily average reference line */}
+          <ReferenceLine 
+            y={dailyAverage} 
+            stroke="#ffa500" 
+            strokeDasharray="2 2" 
+            strokeOpacity={0.7}
+            label={{ value: "Daily Avg", position: "topRight", style: { fill: '#ffa500', fontSize: '10px', fontFamily: 'Courier New, Monaco, monospace' } }}
           />
         </AreaChart>
       </ResponsiveContainer>

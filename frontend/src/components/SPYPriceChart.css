@@ -66,6 +66,14 @@
   border: 1px solid #ff0000;
 }
 
+.average-info {
+  font-size: 0.8rem;
+  color: #ffa500;
+  margin-top: 4px;
+  font-family: 'Courier New', 'Monaco', monospace;
+  opacity: 0.8;
+}
+
 .loading, .error, .no-data {
   text-align: center;
   padding: 40px;
