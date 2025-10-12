@@ -79,6 +79,9 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
   const maxPrice = Math.max(...data.map(item => item.close));
   const priceRange = maxPrice - minPrice;
   const dailyAverageGradientOffset = priceRange > 0 ? ((dailyAverage - minPrice) / priceRange) * 100 : 50;
+  
+  // Determine line color based on current price vs daily average
+  const lineColor = currentPrice >= dailyAverage ? '#00ff00' : '#ff0000';
 
   const formatTimeWindow = (tw) => {
     const windows = {
@@ -155,7 +158,7 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
           <Area
             type="monotone"
             dataKey="price"
-            stroke="#ffa500"
+            stroke={lineColor}
             strokeWidth={2}
             fill="url(#priceGradient)"
             name="SPY Price"
