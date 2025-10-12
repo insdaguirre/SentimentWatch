@@ -9,10 +9,6 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    loadSPYData();
-  }, [timeWindow, loadSPYData]);
-
   const loadSPYData = useCallback(async () => {
     try {
       setLoading(true);
@@ -26,6 +22,10 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
       setLoading(false);
     }
   }, [timeWindow]);
+
+  useEffect(() => {
+    loadSPYData();
+  }, [loadSPYData]);
 
   if (loading) {
     return (
