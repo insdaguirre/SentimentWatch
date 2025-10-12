@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://stocksentiment-e3cfd7d49077.herokuapp.com/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -81,6 +81,16 @@ export const fetchStorage = async () => {
     return response.data.data;
   } catch (error) {
     console.error('Error fetching storage info:', error);
+    throw error;
+  }
+};
+
+export const fetchSPYData = async (timeWindow = '1d') => {
+  try {
+    const response = await api.get(`/sentiment/spy/${timeWindow}`);
+    return response.data.data.data;
+  } catch (error) {
+    console.error('Error fetching SPY data:', error);
     throw error;
   }
 };

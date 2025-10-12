@@ -4,6 +4,7 @@ import SentimentDashboard from './components/SentimentDashboard';
 // import PostsFeed from './components/PostsFeed'; // Removed - using snapshots instead of individual posts
 import StatsPanel from './components/StatsPanel';
 import TimelineChart from './components/TimelineChart';
+import SPYPriceChart from './components/SPYPriceChart';
 import { fetchStats, fetchSnapshots, fetchTimeline } from './services/api';
 
 function App() {
@@ -93,6 +94,7 @@ function App() {
             <div className="content-grid">
               <div className="chart-section">
                 <TimelineChart data={timeline} />
+                <SPYPriceChart timeWindow="1d" />
               </div>
               
               <div className="stats-section">

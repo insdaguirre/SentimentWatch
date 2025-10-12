@@ -4,6 +4,7 @@ const SentimentPost = require('../models/SentimentPost');
 const SentimentSnapshot = require('../models/SentimentSnapshot');
 const { formatBytes, calculateUsagePercent, getStorageColor } = require('../utils/storageUtils');
 const { getHerokuDynoStats, formatDynoStats } = require('../utils/herokuUtils');
+const yfinanceService = require('../services/yfinanceService');
 
 // General sentiment API info
 router.get('/', (req, res) => {
@@ -242,12 +243,46 @@ router.get('/storage', async (req, res) => {
   }
 });
 
+// Get SPY price data
+router.get('/spy/:timeWindow', async (req, res) => {
+  try {
+    const { timeWindow } = req.params;
+    const validTimeWindows = ['1d', '5d', '1mo', '6mo', '1y', '5y'];
+    
+    if (!validTimeWindows.includes(timeWindow)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid time window. Valid options: 1d, 5d, 1mo, 6mo, 1y, 5y'
+      });
+    }
+
+    const data = await yfinanceService.getSPYDataWithOptimalInterval(timeWindow);
+    
+    res.json({
+      success: true,
+      data: {
+        timeWindow,
+        interval: yfinanceService.getOptimalInterval(timeWindow),
+        data,
+        lastUpdated: new Date()
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching SPY data:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch SPY price data'
+    });
+  }
+});
+
 // Health check
 router.get('/health', async (req, res) => {
   try {
     const snapshotCount = await SentimentSnapshot.countDocuments();
     const postCount = await SentimentPost.countDocuments();
     const latestSnapshot = await SentimentSnapshot.findOne().sort({ timestamp: -1 });
+    const yfinanceHealth = await yfinanceService.healthCheck();
 
     res.json({
       success: true,
@@ -256,7 +291,8 @@ router.get('/health', async (req, res) => {
         totalPosts: postCount,
         latestSnapshot: latestSnapshot ? latestSnapshot.timestamp : null,
         status: 'healthy',
-        architecture: 'optimized-aggregation'
+        architecture: 'optimized-aggregation',
+        yfinance: yfinanceHealth
       }
     });
   } catch (error) {
