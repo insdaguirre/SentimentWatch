@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, LineChart, Line } from 'recharts';
 import { format } from 'date-fns';
 import { fetchSPYData } from '../services/api';
 import './SPYPriceChart.css';
@@ -80,9 +80,40 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
   const priceRange = maxPrice - minPrice;
   const dailyAverageGradientOffset = priceRange > 0 ? ((dailyAverage - minPrice) / priceRange) * 100 : 50;
   
-  // Determine line color based on current price vs daily average
-  // This will show green when the line ends above average, red when below
-  const lineColor = currentPrice >= dailyAverage ? '#00ff00' : '#ff0000';
+  // Create segmented data for multi-color line
+  const createSegmentedData = () => {
+    const segments = [];
+    let currentSegment = null;
+    
+    chartData.forEach((point, index) => {
+      const isAboveAverage = point.price >= dailyAverage;
+      const color = isAboveAverage ? '#00ff00' : '#ff0000';
+      
+      if (!currentSegment || currentSegment.color !== color) {
+        // Start new segment
+        if (currentSegment) {
+          segments.push(currentSegment);
+        }
+        currentSegment = {
+          data: [point],
+          color: color,
+          isAboveAverage: isAboveAverage
+        };
+      } else {
+        // Add to current segment
+        currentSegment.data.push(point);
+      }
+    });
+    
+    // Add the last segment
+    if (currentSegment) {
+      segments.push(currentSegment);
+    }
+    
+    return segments;
+  };
+  
+  const lineSegments = createSegmentedData();
   
   // Add visual indicator in the price display
   const priceStatus = currentPrice >= dailyAverage ? 'ABOVE' : 'BELOW';
@@ -121,7 +152,7 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
       </div>
       
       <ResponsiveContainer width="100%" height={400}>
-        <AreaChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+        <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                   <defs>
                     <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#00ff00" stopOpacity={0.3}/>
@@ -163,14 +194,20 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
               fontFamily: 'Courier New, Monaco, monospace'
             }}
           />
-          <Area
-            type="monotone"
-            dataKey="price"
-            stroke={lineColor}
-            strokeWidth={2}
-            fill="url(#priceGradient)"
-            name="SPY Price"
-          />
+          {/* Render multiple line segments with different colors */}
+          {lineSegments.map((segment, index) => (
+            <Line
+              key={index}
+              type="monotone"
+              dataKey="price"
+              data={segment.data}
+              stroke={segment.color}
+              strokeWidth={2}
+              name={`SPY Price ${segment.isAboveAverage ? 'Above' : 'Below'} Avg`}
+              connectNulls={false}
+              dot={false}
+            />
+          ))}
           {/* Daily average reference line */}
           <ReferenceLine 
             y={dailyAverage} 
@@ -179,7 +216,7 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
             strokeOpacity={0.7}
             label={{ value: "Daily Avg", position: "topRight", style: { fill: '#ffa500', fontSize: '10px', fontFamily: 'Courier New, Monaco, monospace' } }}
           />
-        </AreaChart>
+        </LineChart>
       </ResponsiveContainer>
     </div>
   );
