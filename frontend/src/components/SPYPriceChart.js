@@ -95,44 +95,50 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
       
       <ResponsiveContainer width="100%" height={400}>
         <AreaChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-          <defs>
-            <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-              <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <defs>
+                    <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#ffa500" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#ffa500" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+          <CartesianGrid strokeDasharray="1 1" stroke="#333" strokeOpacity={0.8} />
           <XAxis 
             dataKey="time" 
-            stroke="#6b7280"
-            style={{ fontSize: '0.8rem' }}
-            tick={{ fill: '#6b7280' }}
+            stroke="#ffa500"
+            style={{ fontSize: '11px', fontFamily: 'Courier New, Monaco, monospace' }}
+            tick={{ fill: '#ffa500' }}
           />
           <YAxis 
             domain={['dataMin - 5', 'dataMax + 5']}
-            stroke="#6b7280"
-            style={{ fontSize: '0.8rem' }}
-            tick={{ fill: '#6b7280' }}
+            stroke="#ffa500"
+            style={{ fontSize: '11px', fontFamily: 'Courier New, Monaco, monospace' }}
+            tick={{ fill: '#ffa500' }}
             tickFormatter={(value) => `$${value.toFixed(0)}`}
           />
           <Tooltip 
             contentStyle={{
-              background: 'rgba(31, 41, 55, 0.95)',
-              border: '1px solid #374151',
-              borderRadius: '10px',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
-              color: '#f9fafb'
+              background: '#0a0a0a',
+              border: '1px solid #ffa500',
+              borderRadius: '4px',
+              boxShadow: '0 0 10px rgba(255, 165, 0, 0.3)',
+              color: '#ffffff',
+              fontFamily: 'Courier New, Monaco, monospace'
             }}
             formatter={(value, name) => [
               `$${value.toFixed(2)}`, 
-              name === 'price' ? 'Price' : name
+              name === 'price' ? 'SPY PRICE' : name.toUpperCase()
             ]}
-            labelStyle={{ color: '#f9fafb' }}
+            labelStyle={{ 
+              color: '#ffa500', 
+              fontWeight: 'bold',
+              fontSize: '12px',
+              fontFamily: 'Courier New, Monaco, monospace'
+            }}
           />
           <Area
             type="monotone"
             dataKey="price"
-            stroke="#10b981"
+            stroke="#ffa500"
             strokeWidth={2}
             fill="url(#priceGradient)"
             name="SPY Price"
