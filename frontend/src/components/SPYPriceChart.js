@@ -69,6 +69,10 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
   const change = currentPrice - previousPrice;
   const changePercent = previousPrice > 0 ? (change / previousPrice) * 100 : 0;
   
+  // Use the last data point for consistency with chart segments
+  const lastDataPoint = data[data.length - 1];
+  const lastPrice = lastDataPoint?.close || currentPrice;
+  
   // Calculate daily average for color coding
   const dailyAverage = data.reduce((sum, item) => sum + item.close, 0) / data.length;
   const priceVsAverage = currentPrice - dailyAverage;
@@ -115,9 +119,9 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
   
   const lineSegments = createSegmentedData();
   
-  // Add visual indicator in the price display
-  const priceStatus = currentPrice >= dailyAverage ? 'ABOVE' : 'BELOW';
-  const statusColor = currentPrice >= dailyAverage ? '#00ff00' : '#ff0000';
+  // Add visual indicator in the price display - use the last data point for consistency
+  const priceStatus = lastPrice >= dailyAverage ? 'ABOVE' : 'BELOW';
+  const statusColor = lastPrice >= dailyAverage ? '#00ff00' : '#ff0000';
 
   const formatTimeWindow = (tw) => {
     const windows = {
@@ -137,7 +141,7 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
         <h2>📈 SPY Price Chart ({formatTimeWindow(timeWindow)})</h2>
         <div className="price-info">
           <div className="current-price">
-            ${currentPrice.toFixed(2)}
+            ${lastPrice.toFixed(2)}
           </div>
           <div className={`price-change ${change >= 0 ? 'positive' : 'negative'}`}>
             {change >= 0 ? '+' : ''}{change.toFixed(2)} ({changePercent.toFixed(2)}%)
