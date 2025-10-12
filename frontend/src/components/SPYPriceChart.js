@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, LineChart, Line } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, ScatterChart, Scatter, Cell } from 'recharts';
 import { format } from 'date-fns';
 import { fetchSPYData } from '../services/api';
 import './SPYPriceChart.css';
@@ -54,6 +54,9 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
     );
   }
 
+  // Calculate daily average first
+  const dailyAverage = data.reduce((sum, item) => sum + item.close, 0) / data.length;
+  
   const chartData = data.map(item => ({
     time: format(new Date(item.timestamp), 'MMM d HH:mm'),
     price: item.close,
@@ -61,7 +64,9 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
     high: item.high,
     low: item.low,
     close: item.close,
-    volume: item.volume
+    volume: item.volume,
+    isAboveAverage: item.close >= dailyAverage,
+    color: item.close >= dailyAverage ? '#00ff00' : '#ff0000'
   }));
 
   const currentPrice = data[data.length - 1]?.close || 0;
@@ -69,55 +74,13 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
   const change = currentPrice - previousPrice;
   const changePercent = previousPrice > 0 ? (change / previousPrice) * 100 : 0;
   
-  // Use the last data point for consistency with chart segments
+  // Use the last data point for consistency
   const lastDataPoint = data[data.length - 1];
   const lastPrice = lastDataPoint?.close || currentPrice;
   
-  // Calculate daily average for color coding
-  const dailyAverage = data.reduce((sum, item) => sum + item.close, 0) / data.length;
+  // Calculate price vs average
   const priceVsAverage = currentPrice - dailyAverage;
   const averagePercent = dailyAverage > 0 ? (priceVsAverage / dailyAverage) * 100 : 0;
-  
-  // Calculate gradient offset for daily average position
-  const minPrice = Math.min(...data.map(item => item.close));
-  const maxPrice = Math.max(...data.map(item => item.close));
-  const priceRange = maxPrice - minPrice;
-  const dailyAverageGradientOffset = priceRange > 0 ? ((dailyAverage - minPrice) / priceRange) * 100 : 50;
-  
-  // Create segmented data for multi-color line
-  const createSegmentedData = () => {
-    const segments = [];
-    let currentSegment = null;
-    
-    chartData.forEach((point, index) => {
-      const isAboveAverage = point.price >= dailyAverage;
-      const color = isAboveAverage ? '#00ff00' : '#ff0000';
-      
-      if (!currentSegment || currentSegment.color !== color) {
-        // Start new segment
-        if (currentSegment) {
-          segments.push(currentSegment);
-        }
-        currentSegment = {
-          data: [point],
-          color: color,
-          isAboveAverage: isAboveAverage
-        };
-      } else {
-        // Add to current segment
-        currentSegment.data.push(point);
-      }
-    });
-    
-    // Add the last segment
-    if (currentSegment) {
-      segments.push(currentSegment);
-    }
-    
-    return segments;
-  };
-  
-  const lineSegments = createSegmentedData();
   
   // Add visual indicator in the price display - use the last data point for consistency
   const priceStatus = lastPrice >= dailyAverage ? 'ABOVE' : 'BELOW';
@@ -156,14 +119,7 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
       </div>
       
       <ResponsiveContainer width="100%" height={400}>
-        <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                  <defs>
-                    <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#00ff00" stopOpacity={0.3}/>
-                      <stop offset={`${dailyAverageGradientOffset}%`} stopColor="#ffa500" stopOpacity={0.3}/>
-                      <stop offset="100%" stopColor="#ff0000" stopOpacity={0.3}/>
-                    </linearGradient>
-                  </defs>
+        <ScatterChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="1 1" stroke="#333" strokeOpacity={0.8} />
           <XAxis 
             dataKey="time" 
@@ -198,20 +154,17 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
               fontFamily: 'Courier New, Monaco, monospace'
             }}
           />
-          {/* Render multiple line segments with different colors */}
-          {lineSegments.map((segment, index) => (
-            <Line
-              key={index}
-              type="monotone"
-              dataKey="price"
-              data={segment.data}
-              stroke={segment.color}
-              strokeWidth={2}
-              name={`SPY Price ${segment.isAboveAverage ? 'Above' : 'Below'} Avg`}
-              connectNulls={false}
-              dot={false}
-            />
-          ))}
+          {/* Render scatter points with individual colors */}
+          <Scatter
+            dataKey="price"
+            data={chartData}
+            name="SPY Price"
+            fill="#ffa500"
+          >
+            {chartData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} />
+            ))}
+          </Scatter>
           {/* Daily average reference line */}
           <ReferenceLine 
             y={dailyAverage} 
@@ -220,7 +173,7 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
             strokeOpacity={0.7}
             label={{ value: "Daily Avg", position: "topRight", style: { fill: '#ffa500', fontSize: '10px', fontFamily: 'Courier New, Monaco, monospace' } }}
           />
-        </LineChart>
+        </ScatterChart>
       </ResponsiveContainer>
     </div>
   );
