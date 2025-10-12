@@ -33,15 +33,49 @@ class YFinanceService {
       const endDate = new Date();
       const startDate = this.getStartDate(period);
       
-      // Try to get historical data first
+      // Use the chart method instead of deprecated historical method
       let data;
       try {
-        data = await yahooFinance.historical('SPY', startDate, endDate, {
+        const chartData = await yahooFinance.chart('SPY', {
+          period1: startDate,
+          period2: endDate,
           interval: interval
         });
-      } catch (historicalError) {
-        console.log('Historical data failed, falling back to quote:', historicalError.message);
-        // Fallback to quote if historical fails
+        
+        console.log('Chart data structure:', JSON.stringify(chartData, null, 2));
+        
+        // Extract the quotes from the chart data
+        if (chartData && chartData.quotes && chartData.quotes.length > 0) {
+          data = chartData.quotes;
+        } else if (chartData && chartData.timestamp && chartData.indicators && chartData.indicators.quote) {
+          // Alternative data structure
+          const quotes = chartData.indicators.quote[0];
+          const timestamps = chartData.timestamp;
+          data = timestamps.map((timestamp, index) => ({
+            date: new Date(timestamp * 1000),
+            open: quotes.open[index],
+            high: quotes.high[index],
+            low: quotes.low[index],
+            close: quotes.close[index],
+            volume: quotes.volume[index]
+          }));
+        } else if (chartData && chartData.meta) {
+          // If no quotes but we have meta data, create a single data point from meta
+          console.log('No quotes data, creating single data point from meta');
+          data = [{
+            date: new Date(chartData.meta.regularMarketTime),
+            open: chartData.meta.regularMarketPrice,
+            high: chartData.meta.regularMarketDayHigh,
+            low: chartData.meta.regularMarketDayLow,
+            close: chartData.meta.regularMarketPrice,
+            volume: chartData.meta.regularMarketVolume
+          }];
+        } else {
+          throw new Error('No quotes data in chart response');
+        }
+      } catch (chartError) {
+        console.log('Chart data failed, falling back to quote:', chartError.message);
+        // Fallback to quote if chart fails
         const quote = await yahooFinance.quote('SPY');
         if (!quote) {
           throw new Error('No data received from yahoo-finance2');
@@ -100,7 +134,7 @@ class YFinanceService {
 
   getOptimalInterval(timeWindow) {
     const intervals = {
-      '1d': '1m',
+      '1d': '5m',  // Use 5m instead of 1m for better data availability
       '5d': '5m', 
       '1mo': '1h',
       '6mo': '1d',
