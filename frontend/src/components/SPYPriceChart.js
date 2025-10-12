@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, ScatterChart, Scatter, Cell } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, ScatterChart, Scatter, Cell, LineChart, Line } from 'recharts';
 import { format } from 'date-fns';
 import { fetchSPYData } from '../services/api';
 import './SPYPriceChart.css';
@@ -57,17 +57,28 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
   // Calculate daily average first
   const dailyAverage = data.reduce((sum, item) => sum + item.close, 0) / data.length;
   
-  const chartData = data.map(item => ({
-    time: format(new Date(item.timestamp), 'MMM d HH:mm'),
-    price: item.close,
-    open: item.open,
-    high: item.high,
-    low: item.low,
-    close: item.close,
-    volume: item.volume,
-    isAboveAverage: item.close >= dailyAverage,
-    color: item.close >= dailyAverage ? '#00ff00' : '#ff0000'
-  }));
+  // Calculate price range for gradient positioning
+  const minPrice = Math.min(...data.map(item => item.close));
+  const maxPrice = Math.max(...data.map(item => item.close));
+  const priceRange = maxPrice - minPrice;
+  
+  const chartData = data.map(item => {
+    const isAboveAverage = item.close >= dailyAverage;
+    const pricePosition = priceRange > 0 ? (item.close - minPrice) / priceRange : 0.5;
+    
+    return {
+      time: format(new Date(item.timestamp), 'MMM d HH:mm'),
+      price: item.close,
+      open: item.open,
+      high: item.high,
+      low: item.low,
+      close: item.close,
+      volume: item.volume,
+      isAboveAverage: isAboveAverage,
+      color: isAboveAverage ? '#00ff00' : '#ff0000',
+      gradientPosition: pricePosition
+    };
+  });
 
   const currentPrice = data[data.length - 1]?.close || 0;
   const previousPrice = data[data.length - 2]?.close || currentPrice;
@@ -119,7 +130,14 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
       </div>
       
       <ResponsiveContainer width="100%" height={400}>
-        <ScatterChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+        <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+          <defs>
+            <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#00ff00" stopOpacity={0.8}/>
+              <stop offset="50%" stopColor="#ffa500" stopOpacity={0.8}/>
+              <stop offset="100%" stopColor="#ff0000" stopOpacity={0.8}/>
+            </linearGradient>
+          </defs>
           <CartesianGrid strokeDasharray="1 1" stroke="#333" strokeOpacity={0.8} />
           <XAxis 
             dataKey="time" 
@@ -134,7 +152,7 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
             tick={{ fill: '#ffa500' }}
             tickFormatter={(value) => `$${value.toFixed(0)}`}
           />
-          <Tooltip 
+          <Tooltip
             contentStyle={{
               background: '#0a0a0a',
               border: '1px solid #ffa500',
@@ -144,26 +162,44 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
               fontFamily: 'Courier New, Monaco, monospace'
             }}
             formatter={(value, name) => [
-              `$${value.toFixed(2)}`, 
+              `$${value.toFixed(2)}`,
               name === 'price' ? 'SPY PRICE' : name.toUpperCase()
             ]}
-            labelStyle={{ 
-              color: '#ffa500', 
+            labelStyle={{
+              color: '#ffa500',
               fontWeight: 'bold',
               fontSize: '12px',
               fontFamily: 'Courier New, Monaco, monospace'
             }}
           />
-          {/* Render scatter points with individual colors */}
+          {/* Line underneath the dots */}
+          <Line
+            type="monotone"
+            dataKey="price"
+            stroke="#ffa500"
+            strokeWidth={2}
+            strokeOpacity={0.6}
+            dot={false}
+            name="SPY Price Line"
+          />
+          {/* Scatter points with gradient colors */}
           <Scatter
             dataKey="price"
             data={chartData}
-            name="SPY Price"
-            fill="#ffa500"
+            name="SPY Price Points"
+            fill="url(#priceGradient)"
+            r={4}
           >
-            {chartData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
-            ))}
+            {chartData.map((entry, index) => {
+              // Calculate gradient color based on position
+              const gradientColor = entry.isAboveAverage 
+                ? `hsl(${120 - (entry.gradientPosition * 60)}, 100%, 50%)` // Green to yellow gradient for above average
+                : `hsl(${60 - (entry.gradientPosition * 60)}, 100%, 50%)`; // Yellow to red gradient for below average
+              
+              return (
+                <Cell key={`cell-${index}`} fill={gradientColor} />
+              );
+            })}
           </Scatter>
           {/* Daily average reference line */}
           <ReferenceLine 
@@ -173,7 +209,7 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
             strokeOpacity={0.7}
             label={{ value: "Daily Avg", position: "topRight", style: { fill: '#ffa500', fontSize: '10px', fontFamily: 'Courier New, Monaco, monospace' } }}
           />
-        </ScatterChart>
+        </LineChart>
       </ResponsiveContainer>
     </div>
   );
