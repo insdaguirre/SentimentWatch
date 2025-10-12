@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
 import { fetchSPYData } from '../services/api';
@@ -11,9 +11,9 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
 
   useEffect(() => {
     loadSPYData();
-  }, [timeWindow]);
+  }, [timeWindow, loadSPYData]);
 
-  const loadSPYData = async () => {
+  const loadSPYData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -25,7 +25,7 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [timeWindow]);
 
   if (loading) {
     return (
