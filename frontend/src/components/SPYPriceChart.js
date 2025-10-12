@@ -57,33 +57,15 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
   // Calculate daily average first
   const dailyAverage = data.reduce((sum, item) => sum + item.close, 0) / data.length;
   
-  // Calculate price range for gradient positioning
+  // Calculate price range for display
   const minPrice = Math.min(...data.map(item => item.close));
   const maxPrice = Math.max(...data.map(item => item.close));
   
   const chartData = data.map(item => {
     const isAboveAverage = item.close >= dailyAverage;
-    let color;
-
-    if (isAboveAverage) {
-      // Gradient for prices above daily average (green shades)
-      const rangeAbove = maxPrice - dailyAverage;
-      // Normalize position from 0 (at dailyAverage) to 1 (at maxPrice)
-      const normalizedPosition = rangeAbove > 0 ? (item.close - dailyAverage) / rangeAbove : 0.5;
-      // Vary lightness: darker green near average, brighter green higher up
-      // Example: lightness from 40% to 70%
-      const lightness = 40 + (normalizedPosition * 30);
-      color = `hsl(120, 100%, ${lightness}%)`; // Hue 120 is green
-    } else {
-      // Gradient for prices below daily average (red shades)
-      const rangeBelow = dailyAverage - minPrice;
-      // Normalize position from 0 (at dailyAverage) to 1 (at minPrice)
-      const normalizedPosition = rangeBelow > 0 ? (dailyAverage - item.close) / rangeBelow : 0.5;
-      // Vary lightness: darker red near average, brighter red lower down
-      // Example: lightness from 40% to 10%
-      const lightness = 40 - (normalizedPosition * 30);
-      color = `hsl(0, 100%, ${lightness}%)`; // Hue 0 is red
-    }
+    
+    // Binary color decision: green if above average, red if below
+    const color = isAboveAverage ? '#00ff00' : '#ff0000';
 
     return {
       time: format(new Date(item.timestamp), 'MMM d HH:mm'),
