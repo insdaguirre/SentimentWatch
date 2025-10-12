@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Scatter, Cell, LineChart, Line } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, LineChart, Line } from 'recharts';
 import { format } from 'date-fns';
 import { fetchSPYData } from '../services/api';
 import './SPYPriceChart.css';
@@ -190,28 +190,28 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
               fontFamily: 'Courier New, Monaco, monospace'
             }}
           />
-          {/* Line underneath the dots */}
+          {/* Line with colored dots */}
           <Line
             type="monotone"
             dataKey="price"
             stroke="#ffa500"
             strokeWidth={2}
             strokeOpacity={0.6}
-            dot={false}
+            dot={(props) => {
+              const { cx, cy, payload } = props;
+              return (
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={4}
+                  fill={payload.color}
+                  stroke="#ffa500"
+                  strokeWidth={1}
+                />
+              );
+            }}
             name="SPY Price Line"
           />
-          {/* Scatter points with individual colors */}
-          <Scatter
-            dataKey="price"
-            data={chartData}
-            name="SPY Price Points"
-            fill="#ffa500"
-            r={4}
-          >
-            {chartData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
-            ))}
-          </Scatter>
           {/* Daily average reference line */}
           <ReferenceLine 
             y={dailyAverage} 
