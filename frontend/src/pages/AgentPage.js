@@ -1,19 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import SentimentDashboard from '../components/SentimentDashboard';
 import SentimentOverview from '../components/SentimentOverview';
 import SourceBreakdown from '../components/SourceBreakdown';
 import SystemInfo from '../components/SystemInfo';
-import StatsPanel from '../components/StatsPanel';
 import TimelineChart from '../components/TimelineChart';
 import SPYPriceChart from '../components/SPYPriceChart';
 import SPYMetricsWidget from '../components/SPYMetricsWidget';
-import { fetchStats, fetchSnapshots, fetchTimeline } from '../services/api';
+import { fetchStats, fetchTimeline } from '../services/api';
 import './AgentPage.css';
 
 const AgentPage = () => {
   const [ticker] = useState('SPY');
   const [stats, setStats] = useState(null);
-  const [snapshots, setSnapshots] = useState([]);
   const [timeline, setTimeline] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,14 +20,12 @@ const AgentPage = () => {
       setLoading(true);
       setError(null);
       
-      const [statsData, snapshotsData, timelineData] = await Promise.all([
+      const [statsData, timelineData] = await Promise.all([
         fetchStats(ticker),
-        fetchSnapshots(ticker),
         fetchTimeline(ticker)
       ]);
       
       setStats(statsData);
-      setSnapshots(snapshotsData);
       setTimeline(timelineData);
     } catch (err) {
       console.error('Error loading data:', err);
