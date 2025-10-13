@@ -37,8 +37,8 @@ class YFinanceService {
       let data;
       try {
         const chartData = await yahooFinance.chart('SPY', {
-          period1: startDate,
-          period2: endDate,
+          period1: startDate.toISOString().split('T')[0],
+          period2: endDate.toISOString().split('T')[0],
           interval: interval
         });
         

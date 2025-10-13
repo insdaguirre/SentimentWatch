@@ -105,5 +105,25 @@ export const fetchSPYMetrics = async (timeWindow = '5d') => {
   }
 };
 
+export const fetchGeneralNews = async () => {
+  try {
+    const response = await api.get('/news/general');
+    return response.data.data.news;
+  } catch (error) {
+    console.error('Error fetching general news:', error);
+    throw error;
+  }
+};
+
+export const fetchSPYNews = async () => {
+  try {
+    const response = await api.get('/news/spy');
+    return response.data.data.news;
+  } catch (error) {
+    console.error('Error fetching SPY news:', error);
+    throw error;
+  }
+};
+
 export default api;
 

@@ -6,6 +6,7 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/database');
 const sentimentRoutes = require('./routes/sentiment');
+const newsRoutes = require('./routes/news');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -60,6 +61,7 @@ connectDB();
 
 // Routes
 app.use('/api/sentiment', sentimentRoutes);
+app.use('/api/news', newsRoutes);
 
 // Root route
 app.get('/', (req, res) => {
@@ -71,7 +73,11 @@ app.get('/', (req, res) => {
       stats: '/api/sentiment/stats/:ticker',
       timeline: '/api/sentiment/timeline/:ticker',
       top: '/api/sentiment/top/:ticker',
-      health: '/api/sentiment/health'
+      spy: '/api/sentiment/spy/:timeWindow',
+      spyMetrics: '/api/sentiment/spy/metrics/:timeWindow',
+      health: '/api/sentiment/health',
+      news: '/api/news/general',
+      spyNews: '/api/news/spy'
     }
   });
 });
