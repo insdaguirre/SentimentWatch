@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import SentimentDashboard from '../components/SentimentDashboard';
+import SentimentOverview from '../components/SentimentOverview';
+import SourceBreakdown from '../components/SourceBreakdown';
+import SystemInfo from '../components/SystemInfo';
 import StatsPanel from '../components/StatsPanel';
 import TimelineChart from '../components/TimelineChart';
 import SPYPriceChart from '../components/SPYPriceChart';
@@ -79,32 +82,25 @@ const AgentPage = () => {
       </div>
 
       <div className="agent-content">
-        <div className="charts-section">
-          <div className="chart-container">
+        {/* Top Section - Sentiment Overview */}
+        <SentimentOverview stats={stats} />
+        
+        {/* Middle Section - Charts and Stats */}
+        <div className="middle-section">
+          <div className="left-column">
             <TimelineChart data={timeline} />
-          </div>
-          <div className="chart-container">
             <SPYPriceChart timeWindow="5d" />
           </div>
-        </div>
-        
-        <div className="metrics-section">
-          <div className="stats-container">
-            <StatsPanel stats={stats} snapshots={snapshots} />
-          </div>
-          <div className="metrics-container">
-            <SPYMetricsWidget timeWindow="5d" />
+          
+          <div className="right-column">
+            <SourceBreakdown stats={stats} />
+            <SystemInfo stats={stats} />
           </div>
         </div>
 
-        <div className="snapshots-section">
-          <div className="snapshots-info">
-            <h2>📊 Recent Sentiment Snapshots</h2>
-            <p>Displaying aggregated sentiment data from the last 10 time windows</p>
-          </div>
-          <div className="snapshots-content">
-            <SentimentDashboard snapshots={snapshots} />
-          </div>
+        {/* Bottom Section - SPY Metrics */}
+        <div className="bottom-section">
+          <SPYMetricsWidget timeWindow="5d" />
         </div>
       </div>
     </div>
