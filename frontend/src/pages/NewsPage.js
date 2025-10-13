@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchSPYNews } from '../services/api';
+import NewsCard from '../components/NewsCard';
 import './NewsPage.css';
 
 const NewsPage = () => {
@@ -29,18 +30,6 @@ const NewsPage = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const formatTimeAgo = (date) => {
-    const now = new Date();
-    const diffInHours = Math.floor((now - new Date(date)) / (1000 * 60 * 60));
-    
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours === 1) return '1 hour ago';
-    if (diffInHours < 24) return `${diffInHours} hours ago`;
-    
-    const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays === 1) return '1 day ago';
-    return `${diffInDays} days ago`;
-  };
 
   if (loading) {
     return (
@@ -77,23 +66,11 @@ const NewsPage = () => {
       
       <div className="news-grid">
         {news.map((article, index) => (
-          <a
+          <NewsCard
             key={index}
-            href={article.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="news-tile"
-          >
-            <div className="news-tile-header">
-              <span className="news-source">{article.source}</span>
-              <span className="news-time">{formatTimeAgo(article.publishedAt)}</span>
-            </div>
-            <h3 className="news-title">{article.title}</h3>
-            <p className="news-description">{article.description}</p>
-            <div className="news-tile-footer">
-              <span className="read-more">Read more →</span>
-            </div>
-          </a>
+            article={article}
+            theme="red"
+          />
         ))}
       </div>
     </div>
