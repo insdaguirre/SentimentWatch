@@ -2,7 +2,7 @@ import React from 'react';
 import './SentimentOverview.css';
 
 const SentimentOverview = ({ stats }) => {
-  if (!stats) return null;
+  if (!stats || !stats.sentimentBreakdown) return null;
 
   const getSentimentLabel = (score) => {
     if (score > 0.6) return 'Bullish';
@@ -16,8 +16,8 @@ const SentimentOverview = ({ stats }) => {
     return '📉';
   };
 
-  const sentimentLabel = getSentimentLabel(stats.overallScore);
-  const sentimentIcon = getSentimentIcon(stats.overallScore);
+  const sentimentLabel = getSentimentLabel(stats.overallScore || 0.5);
+  const sentimentIcon = getSentimentIcon(stats.overallScore || 0.5);
 
   return (
     <div className="sentiment-overview">
@@ -26,10 +26,10 @@ const SentimentOverview = ({ stats }) => {
           {sentimentLabel} {sentimentIcon}
         </h2>
         <div className="sentiment-score">
-          Overall Sentiment Score: {(stats.overallScore * 100).toFixed(1)}%
+          Overall Sentiment Score: {((stats.overallScore || 0.5) * 100).toFixed(1)}%
         </div>
         <div className="sentiment-meta">
-          Based on {stats.totalPosts} posts in the last 24 hours
+          Based on {stats.totalPosts || 0} posts in the last 24 hours
         </div>
       </div>
       
@@ -37,14 +37,14 @@ const SentimentOverview = ({ stats }) => {
         <div className="sentiment-item positive">
           <div className="sentiment-icon">📈</div>
           <div className="sentiment-numbers">
-            <span className="sentiment-count">{stats.sentimentBreakdown.positive.count}</span>
-            <span className="sentiment-percentage">{(stats.sentimentBreakdown.positive.percentage * 100).toFixed(1)}%</span>
+            <span className="sentiment-count">{stats.sentimentBreakdown.positive?.count || 0}</span>
+            <span className="sentiment-percentage">{((stats.sentimentBreakdown.positive?.percentage || 0) * 100).toFixed(1)}%</span>
           </div>
           <div className="sentiment-label">POSITIVE</div>
           <div className="sentiment-progress">
             <div 
               className="sentiment-progress-fill positive"
-              style={{ width: `${stats.sentimentBreakdown.positive.percentage * 100}%` }}
+              style={{ width: `${(stats.sentimentBreakdown.positive?.percentage || 0) * 100}%` }}
             ></div>
           </div>
         </div>
@@ -52,14 +52,14 @@ const SentimentOverview = ({ stats }) => {
         <div className="sentiment-item neutral">
           <div className="sentiment-icon">➡️</div>
           <div className="sentiment-numbers">
-            <span className="sentiment-count">{stats.sentimentBreakdown.neutral.count}</span>
-            <span className="sentiment-percentage">{(stats.sentimentBreakdown.neutral.percentage * 100).toFixed(1)}%</span>
+            <span className="sentiment-count">{stats.sentimentBreakdown.neutral?.count || 0}</span>
+            <span className="sentiment-percentage">{((stats.sentimentBreakdown.neutral?.percentage || 0) * 100).toFixed(1)}%</span>
           </div>
           <div className="sentiment-label">NEUTRAL</div>
           <div className="sentiment-progress">
             <div 
               className="sentiment-progress-fill neutral"
-              style={{ width: `${stats.sentimentBreakdown.neutral.percentage * 100}%` }}
+              style={{ width: `${(stats.sentimentBreakdown.neutral?.percentage || 0) * 100}%` }}
             ></div>
           </div>
         </div>
@@ -67,14 +67,14 @@ const SentimentOverview = ({ stats }) => {
         <div className="sentiment-item negative">
           <div className="sentiment-icon">📉</div>
           <div className="sentiment-numbers">
-            <span className="sentiment-count">{stats.sentimentBreakdown.negative.count}</span>
-            <span className="sentiment-percentage">{(stats.sentimentBreakdown.negative.percentage * 100).toFixed(1)}%</span>
+            <span className="sentiment-count">{stats.sentimentBreakdown.negative?.count || 0}</span>
+            <span className="sentiment-percentage">{((stats.sentimentBreakdown.negative?.percentage || 0) * 100).toFixed(1)}%</span>
           </div>
           <div className="sentiment-label">NEGATIVE</div>
           <div className="sentiment-progress">
             <div 
               className="sentiment-progress-fill negative"
-              style={{ width: `${stats.sentimentBreakdown.negative.percentage * 100}%` }}
+              style={{ width: `${(stats.sentimentBreakdown.negative?.percentage || 0) * 100}%` }}
             ></div>
           </div>
         </div>

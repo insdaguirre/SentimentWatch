@@ -106,12 +106,44 @@ router.get('/stats/:ticker', async (req, res) => {
 
     const stats = await SentimentSnapshot.getSentimentStats(ticker.toUpperCase(), hours);
 
+    // Transform the data to match frontend expectations
+    const total = stats.total || 0;
+    const positive = stats.positive || 0;
+    const negative = stats.negative || 0;
+    const neutral = stats.neutral || 0;
+    const totalPosts = positive + negative + neutral;
+
+    // Calculate percentages
+    const positivePercentage = totalPosts > 0 ? positive / totalPosts : 0;
+    const negativePercentage = totalPosts > 0 ? negative / totalPosts : 0;
+    const neutralPercentage = totalPosts > 0 ? neutral / totalPosts : 0;
+
     res.json({
       success: true,
       data: {
         ticker: ticker.toUpperCase(),
         period: `${hours} hours`,
-        overall: stats,
+        overallScore: stats.avgScore || 0.5,
+        totalPosts: total,
+        sentimentBreakdown: {
+          positive: {
+            count: positive,
+            percentage: positivePercentage
+          },
+          negative: {
+            count: negative,
+            percentage: negativePercentage
+          },
+          neutral: {
+            count: neutral,
+            percentage: neutralPercentage
+          }
+        },
+        sourceBreakdown: stats.sourceBreakdown,
+        confidence: stats.confidence || 0,
+        volatility: stats.volatility || 0,
+        trend: stats.trend || 'neutral',
+        snapshots: stats.snapshots || 0,
         lastUpdated: new Date()
       }
     });
