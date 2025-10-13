@@ -46,6 +46,8 @@ class NewsService {
           });
 
           if (response.data && response.data.articles) {
+            console.log(`NewsAPI returned ${response.data.articles.length} total articles`);
+            
             const articles = response.data.articles
               .filter(article => article.url && article.title && article.description)
               .slice(0, 12)
@@ -57,6 +59,49 @@ class NewsService {
                 source: article.source.name,
                 imageUrl: article.urlToImage || 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=250&fit=crop&crop=center'
               }));
+
+            console.log(`After filtering, we have ${articles.length} valid articles`);
+            
+            // If we don't have enough articles, try a broader search
+            if (articles.length < 12) {
+              console.log('Not enough articles, trying broader search...');
+              const broaderResponse = await axios.get(`${this.newsApiBaseUrl}/everything`, {
+                params: {
+                  q: 'business OR finance OR economy OR market OR stocks OR investing OR money OR banking',
+                  language: 'en',
+                  sortBy: 'publishedAt',
+                  pageSize: 20, // Request more to account for filtering
+                  apiKey: this.newsApiKey
+                },
+                timeout: 10000
+              });
+
+              if (broaderResponse.data && broaderResponse.data.articles) {
+                console.log(`Broader search returned ${broaderResponse.data.articles.length} total articles`);
+                
+                const broaderArticles = broaderResponse.data.articles
+                  .filter(article => article.url && article.title && article.description)
+                  .slice(0, 12)
+                  .map(article => ({
+                    title: article.title,
+                    description: article.description,
+                    url: article.url,
+                    publishedAt: new Date(article.publishedAt),
+                    source: article.source.name,
+                    imageUrl: article.urlToImage || 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=250&fit=crop&crop=center'
+                  }));
+
+                console.log(`Broader search gave us ${broaderArticles.length} valid articles`);
+                
+                if (broaderArticles.length >= articles.length) {
+                  this.cache.set(cacheKey, broaderArticles);
+                  this.lastRequestTime = Date.now();
+                  
+                  console.log(`Successfully fetched ${broaderArticles.length} real news articles from NewsAPI (broader search)`);
+                  return broaderArticles;
+                }
+              }
+            }
 
             this.cache.set(cacheKey, articles);
             this.lastRequestTime = Date.now();
@@ -217,6 +262,8 @@ class NewsService {
           });
 
           if (response.data && response.data.articles) {
+            console.log(`NewsAPI returned ${response.data.articles.length} total SPY articles`);
+            
             const articles = response.data.articles
               .filter(article => article.url && article.title && article.description)
               .slice(0, 12)
@@ -228,6 +275,49 @@ class NewsService {
                 source: article.source.name,
                 imageUrl: article.urlToImage || 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=250&fit=crop&crop=center'
               }));
+
+            console.log(`After filtering, we have ${articles.length} valid SPY articles`);
+            
+            // If we don't have enough articles, try a broader search
+            if (articles.length < 12) {
+              console.log('Not enough SPY articles, trying broader search...');
+              const broaderResponse = await axios.get(`${this.newsApiBaseUrl}/everything`, {
+                params: {
+                  q: 'SPY OR "S&P 500" OR "SPDR S&P 500" OR "SPY ETF" OR "S&P500" OR "SPDR" OR "SPY stock"',
+                  language: 'en',
+                  sortBy: 'publishedAt',
+                  pageSize: 20, // Request more to account for filtering
+                  apiKey: this.newsApiKey
+                },
+                timeout: 10000
+              });
+
+              if (broaderResponse.data && broaderResponse.data.articles) {
+                console.log(`Broader SPY search returned ${broaderResponse.data.articles.length} total articles`);
+                
+                const broaderArticles = broaderResponse.data.articles
+                  .filter(article => article.url && article.title && article.description)
+                  .slice(0, 12)
+                  .map(article => ({
+                    title: article.title,
+                    description: article.description,
+                    url: article.url,
+                    publishedAt: new Date(article.publishedAt),
+                    source: article.source.name,
+                    imageUrl: article.urlToImage || 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=250&fit=crop&crop=center'
+                  }));
+
+                console.log(`Broader SPY search gave us ${broaderArticles.length} valid articles`);
+                
+                if (broaderArticles.length >= articles.length) {
+                  this.cache.set(cacheKey, broaderArticles);
+                  this.lastRequestTime = Date.now();
+                  
+                  console.log(`Successfully fetched ${broaderArticles.length} real SPY news articles from NewsAPI (broader search)`);
+                  return broaderArticles;
+                }
+              }
+            }
 
             this.cache.set(cacheKey, articles);
             this.lastRequestTime = Date.now();
