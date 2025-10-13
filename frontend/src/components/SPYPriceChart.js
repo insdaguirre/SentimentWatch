@@ -118,7 +118,7 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
       </div>
       
       <ResponsiveContainer width="100%" height={400}>
-        <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+        <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 60 }}>
           <defs>
             <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#00ff00" stopOpacity={0.8}/>
@@ -132,6 +132,9 @@ const SPYPriceChart = ({ timeWindow = '1d' }) => {
             stroke="#ffa500"
             style={{ fontSize: '11px', fontFamily: 'Courier New, Monaco, monospace' }}
             tick={{ fill: '#ffa500' }}
+            angle={-45}
+            textAnchor="end"
+            height={80}
           />
           <YAxis 
             domain={['dataMin - 5', 'dataMax + 5']}
