@@ -442,6 +442,33 @@ class NewsService {
     }
   }
 
+  // Method for ingestion worker - returns data in expected format
+  async getNews(ticker, limit = 20) {
+    try {
+      // Use SPY news for SPY ticker, general news otherwise
+      const news = ticker.toUpperCase() === 'SPY' ? 
+        await this.getSPYNews() : 
+        await this.getGeneralNews();
+      
+      // Map to worker's expected format
+      return news.slice(0, limit).map(article => ({
+        ticker: ticker.toUpperCase(),
+        source: 'news',
+        sourceId: `news_${article.url.replace(/[^a-zA-Z0-9]/g, '_')}`,
+        title: article.title,
+        content: article.description || article.title,
+        url: article.url,
+        publishedAt: new Date(article.publishedAt),
+        metadata: {
+          sourceName: article.source
+        }
+      }));
+    } catch (error) {
+      console.error('Error in getNews:', error);
+      return []; // Return empty array to prevent crash
+    }
+  }
+
   // Health check method
   async healthCheck() {
     try {
