@@ -4,8 +4,9 @@ A production-ready finance app that tracks real-time sentiment across Reddit, St
 
 ![Architecture](https://img.shields.io/badge/Stack-MERN-green)
 ![License](https://img.shields.io/badge/License-MIT-blue)
-![Status](https://img.shields.io/badge/Status-Live_Production-success)
-![Live App](https://img.shields.io/badge/Live_App-Vercel-blue)
+![Status](https://img.shields.io/badge/Status-Archived-yellow)
+
+> **Note**: This project is currently not deployed due to hosting costs. See the UI preview below to see what it looked like when it was live.
 
 ## 🎯 Features
 
@@ -16,7 +17,13 @@ A production-ready finance app that tracks real-time sentiment across Reddit, St
 - **RESTful API**: Well-documented Express API with rate limiting and CORS
 - **Timeline Visualization**: Track sentiment trends over time with interactive charts
 - **Source Breakdown**: See sentiment distribution by platform (Reddit, StockTwits, News, Finnhub)
-- **Cloud Deployment**: Live on Heroku (backend) + Vercel (frontend) + MongoDB Atlas
+- **Cloud Deployment**: Previously deployed on Heroku (backend) + Vercel (frontend) + MongoDB Atlas
+
+## 📸 UI Preview
+
+![SentimentWatch Dashboard](ui.png)
+
+*The SentimentWatch dashboard showing real-time sentiment analysis, timeline charts, source breakdown, and SPY price data.*
 
 ## 🏗️ Architecture
 
