@@ -4,7 +4,8 @@
   "description": "Static SentimentWatch showcase with local synthetic data and zero backend services",
   "scripts": {
     "start": "npm start --prefix frontend",
-    "build": "npm run build --prefix frontend",
+    "build": "node scripts/build-github-pages.mjs",
+    "build:frontend": "npm run build --prefix frontend",
     "test": "npm test --prefix frontend -- --watchAll=false"
   },
   "engines": {

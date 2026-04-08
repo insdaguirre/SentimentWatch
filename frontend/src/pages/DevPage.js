@@ -49,9 +49,12 @@ npm start --prefix frontend`}</code>
           <article className="dev-card section-card">
             <h2>Build the static site</h2>
             <pre>
-              <code>{`npm run build --prefix frontend`}</code>
+              <code>{`npm run build`}</code>
             </pre>
-            <p>The deployable output is written to <code>frontend/build</code>.</p>
+            <p>
+              The deployable output is written to <code>frontend/build</code> with the
+              GitHub Pages subpath derived as <code>/{`<project-name>`}-demo/</code>.
+            </p>
           </article>
         </section>
 

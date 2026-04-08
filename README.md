@@ -52,10 +52,28 @@ No backend, database, `.env`, or API keys are required.
 Build the deployable static site with:
 
 ```bash
-npm run build --prefix frontend
+npm run build
 ```
 
 The output is written to `frontend/build`.
+
+The root build script derives the GitHub Pages subpath from the repo folder or GitHub repository name and sets:
+
+```text
+PUBLIC_URL=/<project-name>-demo
+```
+
+For this repo, the production base path is:
+
+```text
+/sentimentwatch-demo/
+```
+
+If you want the raw CRA build without the GitHub Pages subpath, use:
+
+```bash
+npm run build:frontend
+```
 
 ## Free Deployment
 
@@ -81,8 +99,26 @@ Build command: npm run build
 Publish directory: build
 ```
 
+### GitHub Pages
+
+The repo now includes a Pages workflow at [.github/workflows/github-pages-demo.yml](/Users/diego/SentimentWatchDemo/SentimentWatch/.github/workflows/github-pages-demo.yml).
+
+Deployment assumptions:
+
+- Push the demo-ready code to the `demo` branch
+- Enable GitHub Pages to deploy from GitHub Actions
+- The workflow builds the static frontend and publishes `frontend/build`
+- The app is configured to resolve assets from `/<project-name>-demo/`
+
+For this repository, the deployed URL is:
+
+```text
+https://diego-aguirre.com/sentimentwatch-demo/
+```
+
 ## Notes
 
 - Routing uses `HashRouter`, so the demo works cleanly on static hosts without a backend rewrite layer.
+- Public asset URLs are subpath-safe and no longer assume deployment at `/`.
 - The app shows a visible demo treatment in the UI and avoids implying any live market or trading functionality.
 - Frontend runtime data access is handled through [frontend/src/services/api.js](/Users/diego/SentimentWatchDemo/SentimentWatch/frontend/src/services/api.js), which now reads only from local demo objects.
