@@ -57,22 +57,23 @@ npm run build
 
 The output is written to `frontend/build`.
 
-The root build script derives the GitHub Pages subpath from the repo folder or GitHub repository name and sets:
+The root build script produces a GitHub Pages-safe build with relative asset URLs by default:
 
 ```text
-PUBLIC_URL=/<project-name>-demo
+PUBLIC_URL=.
 ```
 
-For this repo, the production base path is:
+That keeps the app portable for GitHub Pages subpath hosting, including:
 
 ```text
-/sentimentwatch-demo/
+https://insdaguirre.github.io/SentimentWatch-Demo/
+https://diego-aguirre.com/sentimentwatch-demo/
 ```
 
-If you want the raw CRA build without the GitHub Pages subpath, use:
+If you specifically want a hardcoded absolute base path, you can still override it:
 
 ```bash
-npm run build:frontend
+PUBLIC_URL=/sentimentwatch-demo npm run build:frontend
 ```
 
 ## Free Deployment
@@ -106,15 +107,21 @@ The repo now includes a Pages workflow at [.github/workflows/github-pages-demo.y
 Deployment assumptions:
 
 - Push the demo-ready code to the `demo` branch
-- Enable GitHub Pages to deploy from GitHub Actions
+- In `Settings > Pages`, set `Source` to `GitHub Actions`
 - The workflow builds the static frontend and publishes `frontend/build`
-- The app is configured to resolve assets from `/<project-name>-demo/`
+- The app is configured with relative asset URLs so it can be mounted from a project-site URL or a custom-domain subpath
 
 For this repository, the deployed URL is:
 
 ```text
 https://diego-aguirre.com/sentimentwatch-demo/
 ```
+
+Important:
+
+- If Pages is set to `Deploy from a branch`, GitHub will publish the repository root and may render `README.md` instead of the React app.
+- A standalone project Pages repo normally publishes at `https://<user>.github.io/<repo>/`.
+- To serve this demo at `https://diego-aguirre.com/sentimentwatch-demo/`, the built output needs to live under that path on your main site, typically in the `insdaguirre.github.io` repository that owns the custom domain.
 
 ## Notes
 

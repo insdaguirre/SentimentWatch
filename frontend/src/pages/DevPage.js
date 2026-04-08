@@ -53,7 +53,7 @@ npm start --prefix frontend`}</code>
             </pre>
             <p>
               The deployable output is written to <code>frontend/build</code> with the
-              GitHub Pages subpath derived as <code>/{`<project-name>`}-demo/</code>.
+              asset URLs generated relative to the current subpath for static hosting.
             </p>
           </article>
         </section>
