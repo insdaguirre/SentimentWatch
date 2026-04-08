@@ -1,101 +1,96 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
+import { useSearchParams } from 'react-router-dom';
 import SentimentOverview from '../components/SentimentOverview';
 import SourceBreakdown from '../components/SourceBreakdown';
 import SystemInfo from '../components/SystemInfo';
 import TimelineChart from '../components/TimelineChart';
 import SPYPriceChart from '../components/SPYPriceChart';
 import SPYMetricsWidget from '../components/SPYMetricsWidget';
-import { fetchStats, fetchTimeline } from '../services/api';
+import PostsFeed from '../components/PostsFeed';
+import {
+  fetchDemoInfo,
+  fetchPriceSeries,
+  fetchStats,
+  fetchTickerDirectory,
+  fetchTickerFeed,
+  fetchTickerMetrics,
+  fetchTimeline,
+  normalizeTicker,
+} from '../services/api';
 import './AgentPage.css';
 
 const AgentPage = () => {
-  const [ticker] = useState('SPY');
-  const [stats, setStats] = useState(null);
-  const [timeline, setTimeline] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const loadData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const [statsData, timelineData] = await Promise.all([
-        fetchStats(ticker),
-        fetchTimeline(ticker)
-      ]);
-      
-      setStats(statsData);
-      setTimeline(timelineData);
-    } catch (err) {
-      console.error('Error loading data:', err);
-      setError('Failed to load data');
-    } finally {
-      setLoading(false);
-    }
-  }, [ticker]);
-
-  useEffect(() => {
-    loadData();
-    
-    // Refresh data every 5 minutes
-    const interval = setInterval(loadData, 5 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, [loadData]);
-
-  if (loading) {
-    return (
-      <div className="agent-page">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Loading agent data...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="agent-page">
-        <div className="error-container">
-          <h2>⚠️ Error Loading Data</h2>
-          <p>{error}</p>
-          <button onClick={loadData}>Retry</button>
-        </div>
-      </div>
-    );
-  }
+  const [searchParams, setSearchParams] = useSearchParams();
+  const ticker = normalizeTicker(searchParams.get('ticker'));
+  const stats = fetchStats(ticker);
+  const timeline = fetchTimeline(ticker);
+  const priceSeries = fetchPriceSeries(ticker);
+  const metrics = fetchTickerMetrics(ticker);
+  const demoInfo = fetchDemoInfo();
+  const posts = fetchTickerFeed(ticker);
+  const tickerDirectory = fetchTickerDirectory();
 
   return (
-    <div className="agent-page">
-      <div className="agent-header">
-        <h1>🤖 Sentiment Agent</h1>
-        <p>Real-time market sentiment analysis for {ticker}</p>
-        <div className="last-updated">
-          Last updated: {new Date().toLocaleTimeString()}
+    <div className="agent-page page-shell">
+      <div className="agent-header section-card">
+        <div>
+          <span className="demo-chip">Demo Dashboard</span>
+          <p className="eyebrow">Client-side sentiment workspace</p>
+          <h1>{stats.company}</h1>
+          <p>{stats.demoHeadline}</p>
+        </div>
+        <div className="agent-controls">
+          <label>
+            <span>Selected ticker</span>
+            <select
+              value={ticker}
+              onChange={(event) => setSearchParams({ ticker: event.target.value })}
+            >
+              {tickerDirectory.map((item) => (
+                <option key={item.symbol} value={item.symbol}>
+                  {item.symbol} · {item.company}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="pill-row">
+            {tickerDirectory.map((item) => (
+              <button
+                key={item.symbol}
+                type="button"
+                className={`ticker-pill ${item.symbol === ticker ? 'ticker-pill--active' : ''}`}
+                onClick={() => setSearchParams({ ticker: item.symbol })}
+              >
+                {item.symbol}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       <div className="agent-content">
-        {/* Top Section - Sentiment Overview */}
         <SentimentOverview stats={stats} />
-        
-        {/* Middle Section - Charts and Stats */}
+
         <div className="middle-section">
           <div className="left-column">
             <TimelineChart data={timeline} />
-            <SPYPriceChart timeWindow="5d" />
+            <SPYPriceChart data={priceSeries} ticker={ticker} company={stats.company} />
           </div>
-          
+
           <div className="right-column">
             <SourceBreakdown stats={stats} />
-            <SystemInfo stats={stats} />
+            <SPYMetricsWidget metrics={metrics} />
           </div>
         </div>
 
-        {/* Bottom Section - SPY Metrics */}
         <div className="bottom-section">
-          <SPYMetricsWidget timeWindow="5d" />
+          <PostsFeed
+            posts={posts}
+            ticker={ticker}
+            title="Cross-source feed"
+            subtitle="Headlines, forum takes, and ticker chatter for the selected name."
+          />
+          <SystemInfo info={demoInfo} stats={stats} />
         </div>
       </div>
     </div>

@@ -1,186 +1,65 @@
 .spy-price-chart {
-  background: #0a0a0a;
-  border-radius: 4px;
-  padding: 16px;
-  margin: 20px 0;
-  border: 1px solid #ffa500;
-  font-family: 'Courier New', 'Monaco', monospace;
-  box-shadow: 0 0 10px rgba(255, 165, 0, 0.1);
+  padding: 22px;
 }
 
 .chart-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-  gap: 10px;
-  border-bottom: 1px solid #333;
-  padding-bottom: 8px;
+  gap: 18px;
+  margin-bottom: 14px;
 }
 
 .chart-header h2 {
-  color: #ffa500;
+  margin: 6px 0;
+  font-size: 1.4rem;
+}
+
+.chart-header p:last-child,
+.average-info {
   margin: 0;
-  font-size: 1.2rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-family: 'Courier New', 'Monaco', monospace;
+  color: var(--text-muted);
 }
 
 .price-info {
   text-align: right;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  font-family: 'Courier New', 'Monaco', monospace;
 }
 
 .current-price {
-  font-size: 1.6rem;
-  font-weight: bold;
-  color: #ffffff;
-  margin-bottom: 4px;
-  line-height: 1;
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+  font-size: 2rem;
+  font-weight: 700;
 }
 
-.price-change {
-  font-size: 0.9rem;
-  font-weight: 500;
-  padding: 2px 6px;
-  border-radius: 2px;
-  font-family: 'Courier New', 'Monaco', monospace;
+.price-change.positive,
+.price-status.positive {
+  color: var(--positive);
 }
 
-.price-change.positive {
-  color: #00ff00;
-  background-color: rgba(0, 255, 0, 0.1);
-  border: 1px solid #00ff00;
-}
-
-.price-change.negative {
-  color: #ff0000;
-  background-color: rgba(255, 0, 0, 0.1);
-  border: 1px solid #ff0000;
-}
-
-.average-info {
-  font-size: 0.8rem;
-  color: #ffa500;
-  margin-top: 4px;
-  font-family: 'Courier New', 'Monaco', monospace;
-  opacity: 0.8;
+.price-change.negative,
+.price-status.negative {
+  color: var(--negative);
 }
 
 .price-status {
-  font-size: 0.7rem;
-  font-weight: bold;
-  margin-top: 2px;
-  font-family: 'Courier New', 'Monaco', monospace;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  margin-top: 4px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
 }
 
-.loading, .error, .no-data {
-  text-align: center;
-  padding: 40px;
-  color: #ffa500;
-  font-size: 1.1rem;
-  font-family: 'Courier New', 'Monaco', monospace;
-}
-
-.error {
-  color: #ff0000;
-  background-color: rgba(255, 0, 0, 0.1);
-  border: 1px solid #ff0000;
-  border-radius: 4px;
-  padding: 16px;
-}
-
+.loading,
+.error,
 .no-data {
-  color: #ffa500;
+  padding: 40px 0;
+  text-align: center;
+  color: var(--text-muted);
 }
 
-/* Responsive design */
 @media (max-width: 768px) {
   .chart-header {
     flex-direction: column;
-    align-items: flex-start;
   }
-  
+
   .price-info {
-    align-items: flex-start;
-    margin-top: 10px;
+    text-align: left;
   }
-  
-  .current-price {
-    font-size: 1.5rem;
-  }
-  
-  .chart-header h2 {
-    font-size: 1.3rem;
-  }
-}
-
-/* Chart container styling */
-.spy-price-chart .recharts-wrapper {
-  background: transparent;
-}
-
-/* Bloomberg terminal tooltip styling */
-.spy-price-chart .recharts-tooltip-wrapper {
-  outline: none;
-}
-
-.spy-price-chart .recharts-tooltip-content {
-  background: #0a0a0a !important;
-  border: 1px solid #ffa500 !important;
-  border-radius: 4px !important;
-  box-shadow: 0 0 10px rgba(255, 165, 0, 0.3) !important;
-}
-
-.spy-price-chart .recharts-tooltip-label {
-  color: #ffa500 !important;
-  font-weight: bold !important;
-  font-family: 'Courier New', 'Monaco', monospace !important;
-  font-size: 12px !important;
-}
-
-.spy-price-chart .recharts-tooltip-item {
-  color: #ffffff !important;
-  font-family: 'Courier New', 'Monaco', monospace !important;
-  font-size: 11px !important;
-}
-
-/* Bloomberg terminal grid lines styling */
-.spy-price-chart .recharts-cartesian-grid-horizontal line,
-.spy-price-chart .recharts-cartesian-grid-vertical line {
-  stroke: #333;
-  stroke-width: 1;
-  stroke-opacity: 0.8;
-}
-
-/* Bloomberg terminal axis styling */
-.spy-price-chart .recharts-xAxis .recharts-text,
-.spy-price-chart .recharts-yAxis .recharts-text {
-  fill: #ffa500;
-  font-size: 11px;
-  font-family: 'Courier New', 'Monaco', monospace;
-}
-
-/* Bloomberg terminal area chart styling */
-.spy-price-chart .recharts-area {
-  filter: drop-shadow(0 0 3px rgba(255, 165, 0, 0.3));
-}
-
-/* Hover effects */
-.spy-price-chart .recharts-dot {
-  transition: all 0.2s ease;
-}
-
-.spy-price-chart .recharts-dot:hover {
-  r: 6;
-  stroke-width: 3;
 }

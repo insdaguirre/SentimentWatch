@@ -1,25 +1,50 @@
+:root {
+  --bg: #07111c;
+  --bg-accent: #0d2030;
+  --panel: rgba(8, 21, 34, 0.78);
+  --panel-strong: rgba(12, 28, 43, 0.92);
+  --border: rgba(143, 181, 209, 0.18);
+  --text-primary: #f5fbff;
+  --text-muted: #9cb4c7;
+  --accent: #5fd1ff;
+  --accent-warm: #f2b84b;
+  --positive: #38d39f;
+  --negative: #ff8577;
+  --neutral: #b9c7d6;
+  --shadow-lg: 0 24px 70px rgba(0, 0, 0, 0.28);
+}
+
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  min-height: 100vh;
+  color: var(--text-primary);
+  font-family: 'Avenir Next', 'Segoe UI', 'Trebuchet MS', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #0a0a0a;
-  color: #00ff00;
-  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(95, 209, 255, 0.18), transparent 30%),
+    radial-gradient(circle at top right, rgba(242, 184, 75, 0.16), transparent 25%),
+    linear-gradient(180deg, #08121c 0%, #07111c 35%, #081520 100%);
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+a {
+  color: inherit;
+}
+
+button,
+input,
+select {
+  font: inherit;
 }
 
 #root {
   min-height: 100vh;
 }
-

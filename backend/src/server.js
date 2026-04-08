@@ -4,9 +4,12 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
+const fs = require('fs');
 const connectDB = require('./config/database');
-const sentimentRoutes = require('./routes/sentiment');
-const newsRoutes = require('./routes/news');
+const sentimentRoutes = require('./routes/sentiment-demo');
+const newsRoutes = require('./routes/news-demo');
+const IngestionWorker = require('./workers/ingestionWorker');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -56,38 +59,60 @@ app.use(express.urlencoded({ extended: true }));
 // Logging
 app.use(morgan('dev'));
 
-// Connect to MongoDB
+// Connect to Database (in-memory for demo)
 connectDB();
+
+// Serve React frontend
+const frontendBuildPath = path.join(__dirname, '../../frontend/build');
+const developerNotePath = path.join(__dirname, '../public');
+
+// Check if frontend build exists, create fallback if in development
+let frontendPath = frontendBuildPath;
+
+if (!fs.existsSync(frontendBuildPath)) {
+  // In development, serve a simple HTML page pointing to the instructions
+  console.log('[Server] Frontend build not found. Build the frontend first:');
+  console.log('[Server]   cd frontend && npm run build && cd ..');
+  
+  // Create public folder if it doesn't exist
+  if (!fs.existsSync(developerNotePath)) {
+    fs.mkdirSync(developerNotePath, { recursive: true });
+  }
+  
+  frontendPath = developerNotePath;
+} else {
+  console.log('[Server] Frontend build found, serving static files');
+}
+
+app.use(express.static(frontendPath));
 
 // Routes
 app.use('/api/sentiment', sentimentRoutes);
 app.use('/api/news', newsRoutes);
 
-// Root route
-app.get('/', (req, res) => {
-  res.json({
-    message: 'Stock Sentiment API',
-    version: '1.0.0',
-    endpoints: {
-      posts: '/api/sentiment/posts/:ticker',
-      stats: '/api/sentiment/stats/:ticker',
-      timeline: '/api/sentiment/timeline/:ticker',
-      top: '/api/sentiment/top/:ticker',
-      spy: '/api/sentiment/spy/:timeWindow',
-      spyMetrics: '/api/sentiment/spy/metrics/:timeWindow',
-      health: '/api/sentiment/health',
-      news: '/api/news/general',
-      spyNews: '/api/news/spy'
-    }
-  });
-});
-
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    error: 'Endpoint not found'
-  });
+// Serve frontend for all non-API routes (SPA support)
+app.get('*', (req, res) => {
+  // If it's an API route, it was already handled above
+  // Otherwise, serve the React index.html or development info
+  const indexPath = path.join(frontendPath, 'index.html');
+  
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).json({
+      success: false,
+      error: 'Frontend not built',
+      message: 'Build the React frontend first: cd frontend && npm run build && cd ..',
+      apiEndpoint: 'API is available at /api/sentiment and /api/news',
+      steps: [
+        '1. cd frontend',
+        '2. npm install',
+        '3. npm run build',
+        '4. cd ..',
+        '5. npm start --prefix backend'
+      ]
+    });
+  }
 });
 
 // Error handler
@@ -99,10 +124,22 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
-const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+// Start server and ingestion worker
+const server = app.listen(PORT, async () => {
+  console.log(`\n🚀 SentimentWatch Demo Server started on port ${PORT}`);
+  console.log(`📱 Open http://localhost:${PORT} in your browser`);
+  console.log(`🔄 Running in demo mode with dummy data (no external APIs required)\n`);
+  
+  // Start the ingestion worker after a short delay
+  setTimeout(async () => {
+    try {
+      const worker = new IngestionWorker();
+      console.log('[Worker] Starting data ingestion worker...');
+      await worker.start();
+    } catch (error) {
+      console.error('[Worker] Error starting ingestion worker:', error);
+    }
+  }, 1000);
 });
 
 // Graceful shutdown

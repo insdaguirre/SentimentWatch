@@ -1,38 +1,36 @@
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import './Navbar.css';
 
 const Navbar = () => {
-  const location = useLocation();
-  const isMainPage = location.pathname === '/';
-
   return (
     <nav className="navbar">
       <div className="navbar-container">
-        <NavLink 
-          to="/" 
-          className={`navbar-brand ${isMainPage ? 'active' : ''}`}
-        >
-          SentimentWatch
-        </NavLink>
+        <div className="navbar-brand-block">
+          <NavLink to="/" className="navbar-brand">
+            <span className="navbar-brand__mark">SW</span>
+            <span>SentimentWatch</span>
+          </NavLink>
+          <span className="demo-chip navbar-demo">Static Demo</span>
+        </div>
         <div className="navbar-links">
-          <NavLink 
-            to="/agent" 
+          <NavLink
+            to="/dashboard?ticker=AAPL"
             className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}
           >
-            Agent
+            Dashboard
           </NavLink>
-          <NavLink 
-            to="/news" 
+          <NavLink
+            to="/feed"
             className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}
           >
-            News
+            Feed
           </NavLink>
-          <NavLink 
-            to="/dev" 
+          <NavLink
+            to="/about"
             className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}
           >
-            Dev
+            About
           </NavLink>
         </div>
       </div>

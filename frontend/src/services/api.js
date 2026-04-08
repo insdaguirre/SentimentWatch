@@ -1,129 +1,124 @@
-import axios from 'axios';
+import {
+  DEFAULT_TICKER,
+  DEMO_LAST_UPDATED,
+  DEMO_NOTICE,
+  getAllFeedItems,
+  getAllNewsItems,
+  getDemoSummary,
+  getTickerData,
+  getTickerList,
+  getTickerTone,
+} from '../data/demoData';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://stocksentiment-e3cfd7d49077.herokuapp.com/api';
+export const normalizeTicker = (ticker) => {
+  const upper = String(ticker || DEFAULT_TICKER).toUpperCase();
+  return getTickerList().some((item) => item.symbol === upper) ? upper : DEFAULT_TICKER;
+};
 
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
+export const fetchTickerDirectory = () => getTickerList();
+
+export const fetchMarketOverview = () => getDemoSummary();
+
+export const fetchStats = (ticker) => {
+  const profile = getTickerData(normalizeTicker(ticker));
+  const { score, confidence, totalPosts, positive, neutral, negative, delta } = profile.sentimentSummary;
+
+  return {
+    symbol: profile.symbol,
+    company: profile.company,
+    sector: profile.sector,
+    overallScore: score,
+    confidence,
+    totalPosts,
+    dayChange: profile.dayChange,
+    price: profile.price,
+    summary: profile.summary,
+    demoHeadline: profile.demoHeadline,
+    topThemes: profile.themes,
+    riskNote: profile.metrics.riskNote,
+    conviction: profile.metrics.conviction,
+    buzzChange: profile.metrics.buzzChange,
+    sourceDiversity: profile.metrics.sourceDiversity,
+    scoreDelta: delta,
+    tone: getTickerTone(score),
+    sentimentBreakdown: {
+      positive: { count: positive, percentage: positive / totalPosts },
+      neutral: { count: neutral, percentage: neutral / totalPosts },
+      negative: { count: negative, percentage: negative / totalPosts },
+    },
+    sourceBreakdown: profile.sourceBreakdown,
+  };
+};
+
+export const fetchTimeline = (ticker) => {
+  const profile = getTickerData(normalizeTicker(ticker));
+  return profile.timeline.map((point) => ({
+    timestamp: point.timestamp,
+    overallScore: point.overallScore,
+    confidence: point.confidence,
+    totalPosts: point.totalPosts,
+    overallSentiment: getTickerTone(point.overallScore).label,
+    positive: point.positive,
+    neutral: point.neutral,
+    negative: point.negative,
+  }));
+};
+
+export const fetchPriceSeries = (ticker) => {
+  const profile = getTickerData(normalizeTicker(ticker));
+  return profile.timeline.map((point, index, list) => {
+    const previous = list[Math.max(index - 1, 0)].price;
+    return {
+      timestamp: point.timestamp,
+      close: point.price,
+      open: previous,
+      high: Math.max(point.price, previous) + 1.8,
+      low: Math.min(point.price, previous) - 1.6,
+      volume: 900000 + index * 125000,
+      sentimentScore: point.overallScore,
+    };
+  });
+};
+
+export const fetchTickerMetrics = (ticker) => {
+  const profile = getTickerData(normalizeTicker(ticker));
+  const latest = profile.timeline[profile.timeline.length - 1];
+  return {
+    ticker: profile.symbol,
+    company: profile.company,
+    lastUpdated: DEMO_LAST_UPDATED,
+    metrics: {
+      conviction: profile.metrics.conviction,
+      buzzChange: profile.metrics.buzzChange,
+      sourceDiversity: profile.metrics.sourceDiversity,
+      sentimentScore: Math.round(latest.overallScore * 100),
+      sampleDepth: profile.feed.length,
+    },
+  };
+};
+
+export const fetchTickerFeed = (ticker, source = 'all') => {
+  const profile = getTickerData(normalizeTicker(ticker));
+  return profile.feed.filter((item) => source === 'all' || item.source === source);
+};
+
+export const fetchGeneralNews = () => getAllNewsItems().slice(0, 6);
+
+export const fetchTickerNews = (ticker) =>
+  fetchTickerFeed(normalizeTicker(ticker), 'news');
+
+export const fetchSourceFeed = ({ ticker = 'all', source = 'all' } = {}) =>
+  getAllFeedItems().filter((item) => {
+    const tickerMatch = ticker === 'all' || item.ticker === normalizeTicker(ticker);
+    const sourceMatch = source === 'all' || item.source === source;
+    return tickerMatch && sourceMatch;
+  });
+
+export const fetchDemoInfo = () => ({
+  notice: DEMO_NOTICE,
+  lastUpdated: DEMO_LAST_UPDATED,
+  mode: 'Local data mode',
+  dataLocation: 'frontend/src/data/demoData.js',
+  auth: 'No backend auth required.',
+  services: ['No live APIs', 'No database', 'No background jobs', 'No server-side pipeline'],
 });
-
-export const fetchStats = async (ticker, hours = 24) => {
-  try {
-    const response = await api.get(`/sentiment/stats/${ticker}`, {
-      params: { hours }
-    });
-    return response.data.data;
-  } catch (error) {
-    console.error('Error fetching stats:', error);
-    throw error;
-  }
-};
-
-export const fetchCurrentSentiment = async (ticker) => {
-  try {
-    const response = await api.get(`/sentiment/current/${ticker}`);
-    return response.data.data;
-  } catch (error) {
-    console.error('Error fetching current sentiment:', error);
-    throw error;
-  }
-};
-
-export const fetchSnapshots = async (ticker, limit = 50, timeWindow = '5min') => {
-  try {
-    const response = await api.get(`/sentiment/snapshots/${ticker}`, {
-      params: { limit, timeWindow }
-    });
-    return response.data.data;
-  } catch (error) {
-    console.error('Error fetching snapshots:', error);
-    throw error;
-  }
-};
-
-export const fetchTimeline = async (ticker, hours = 24) => {
-  try {
-    const response = await api.get(`/sentiment/timeline/${ticker}`, {
-      params: { hours }
-    });
-    return response.data.data;
-  } catch (error) {
-    console.error('Error fetching timeline:', error);
-    throw error;
-  }
-};
-
-export const fetchTopSnapshots = async (ticker, sentiment = 'bullish', limit = 10, hours = 24) => {
-  try {
-    const response = await api.get(`/sentiment/top/${ticker}`, {
-      params: { sentiment, limit, hours }
-    });
-    return response.data.data;
-  } catch (error) {
-    console.error('Error fetching top snapshots:', error);
-    throw error;
-  }
-};
-
-export const checkHealth = async () => {
-  try {
-    const response = await api.get('/sentiment/health');
-    return response.data.data;
-  } catch (error) {
-    console.error('Error checking health:', error);
-    throw error;
-  }
-};
-
-export const fetchStorage = async () => {
-  try {
-    const response = await api.get('/sentiment/storage');
-    return response.data.data;
-  } catch (error) {
-    console.error('Error fetching storage info:', error);
-    throw error;
-  }
-};
-
-export const fetchSPYData = async (timeWindow = '1d') => {
-  try {
-    const response = await api.get(`/sentiment/spy/${timeWindow}`);
-    return response.data.data.data;
-  } catch (error) {
-    console.error('Error fetching SPY data:', error);
-    throw error;
-  }
-};
-
-export const fetchSPYMetrics = async (timeWindow = '5d') => {
-  try {
-    const response = await api.get(`/sentiment/spy/metrics/${timeWindow}`);
-    return response.data.data;
-  } catch (error) {
-    console.error('Error fetching SPY metrics:', error);
-    throw error;
-  }
-};
-
-export const fetchGeneralNews = async () => {
-  try {
-    const response = await api.get('/news/general');
-    return response.data.data.news;
-  } catch (error) {
-    console.error('Error fetching general news:', error);
-    throw error;
-  }
-};
-
-export const fetchSPYNews = async () => {
-  try {
-    const response = await api.get('/news/spy');
-    return response.data.data.news;
-  } catch (error) {
-    console.error('Error fetching SPY news:', error);
-    throw error;
-  }
-};
-
-export default api;
-

@@ -1,13 +1,11 @@
 require('dotenv').config({ path: require('path').join(__dirname, '../../.env') });
 const cron = require('node-cron');
 const connectDB = require('../config/database');
-const SentimentPost = require('../models/SentimentPost');
-const SentimentSnapshot = require('../models/SentimentSnapshot');
-const ProcessedPostId = require('../models/ProcessedPostId');
-const redditService = require('../services/redditService');
-const stocktwitsService = require('../services/stocktwitsService');
-const newsService = require('../services/newsService');
-const finnhubService = require('../services/finnhubService');
+const inMemoryDataStore = require('../services/inMemoryDataStore');
+const mockRedditService = require('../services/mockRedditService');
+const mockStockTwitsService = require('../services/mockStockTwitsService');
+const mockNewsService = require('../services/mockNewsService');
+const mockFinnhubService = require('../services/mockFinnhubService');
 const sentimentAnalyzer = require('../services/sentimentAnalyzer');
 
 class IngestionWorker {
@@ -43,10 +41,10 @@ class IngestionWorker {
     
     for (const ticker of this.tickers) {
       try {
-        const recentIds = await ProcessedPostId.find({
+        const recentIds = await inMemoryDataStore.findProcessedPostIds({
           ticker: ticker,
           processedAt: { $gte: twentyFourHoursAgo }
-        }).select('sourceId');
+        });
         
         this.processedPostIds.set(ticker, new Set(recentIds.map(r => r.sourceId)));
         console.log(`Loaded ${recentIds.length} recent processed IDs for ${ticker}`);
@@ -86,8 +84,8 @@ class IngestionWorker {
     
     try {
       const [spyPosts, spxPosts] = await Promise.all([
-        stocktwitsService.getMessages('SPY', spyLimit),
-        stocktwitsService.getMessages('SPX', spxLimit)
+        mockStockTwitsService.getMessages('SPY', spyLimit),
+        mockStockTwitsService.getMessages('SPX', spxLimit)
       ]);
       
       const allStockTwitsPosts = [...spyPosts, ...spxPosts];
@@ -97,7 +95,7 @@ class IngestionWorker {
     } catch (error) {
       console.error('Error fetching multi-symbol StockTwits posts:', error.message);
       // Fallback to single SPY call if multi-symbol fails
-      return await stocktwitsService.getMessages('SPY', totalLimit);
+      return await mockStockTwitsService.getMessages('SPY', totalLimit);
     }
   }
 
@@ -105,12 +103,12 @@ class IngestionWorker {
     console.log(`\n=== Ingesting data for ${ticker} ===`);
 
     try {
-      // Fetch from all sources in parallel
+      // Fetch from all sources in parallel (using mock services)
       const [redditPosts, stocktwitsPosts, newsArticles, finnhubArticles] = await Promise.all([
-        redditService.searchPosts(ticker, 75), // Increased to 75 posts
+        mockRedditService.searchPosts(ticker, 75), // Increased to 75 posts
         this.getStockTwitsPosts(ticker, 60), // Multi-symbol approach: SPY + SPX
-        newsService.getNews(ticker, 20),
-        finnhubService.getNews(ticker, 8) // 8 articles per cycle = ~32/hour (close to 30/hour target)
+        mockNewsService.getNews(ticker, 20),
+        mockFinnhubService.getNews(ticker, 8) // 8 articles per cycle = ~32/hour (close to 30/hour target)
       ]);
 
       const allPosts = [...redditPosts, ...stocktwitsPosts, ...newsArticles, ...finnhubArticles];
@@ -165,10 +163,11 @@ class IngestionWorker {
       // Create sentiment snapshot (aggregated data)
       const snapshot = this.createSentimentSnapshot(ticker, processedPosts, sentiments);
       
-      // Save snapshot to database
-      await SentimentSnapshot.create(snapshot);
+      // Save posts and snapshot to in-memory store
+      await inMemoryDataStore.createSentimentPosts(processedPosts);
+      await inMemoryDataStore.createSentimentSnapshot(snapshot);
       
-      // Persist new IDs to database (async, non-blocking)
+      // Persist new IDs to in-memory store (async, non-blocking)
       this.persistProcessedIds(ticker, newPosts);
       
       console.log(`${ticker}: Created sentiment snapshot with ${processedPosts.length} new posts`);
@@ -282,21 +281,16 @@ class IngestionWorker {
 
   async persistProcessedIds(ticker, newPosts) {
     try {
-      // Non-blocking persistence
-      const idsToStore = newPosts.map(post => ({
-        sourceId: post.sourceId,
-        ticker: post.ticker
-      }));
-      
-      if (idsToStore.length > 0) {
-        await ProcessedPostId.insertMany(idsToStore, { ordered: false });
-        console.log(`Persisted ${idsToStore.length} new processed IDs for ${ticker}`);
+      // Non-blocking persistence to in-memory store
+      for (const post of newPosts) {
+        await inMemoryDataStore.createProcessedPostId({
+          sourceId: post.sourceId,
+          ticker: post.ticker
+        });
       }
+      console.log(`Persisted ${newPosts.length} new processed IDs for ${ticker}`);
     } catch (error) {
-      // Ignore duplicate key errors (race conditions)
-      if (!error.message.includes('duplicate key')) {
-        console.error('Error persisting processed IDs:', error);
-      }
+      console.error('Error persisting processed IDs:', error);
     }
   }
 

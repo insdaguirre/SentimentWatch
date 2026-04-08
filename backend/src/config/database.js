@@ -1,33 +1,29 @@
-const mongoose = require('mongoose');
+/**
+ * Database configuration for demo mode
+ * Uses in-memory store instead of MongoDB
+ */
+
+const inMemoryDataStore = require('../services/inMemoryDataStore');
+const dummyDataGenerator = require('../services/dummyDataGenerator');
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    console.log('[DB] Initializing in-memory data store for demo mode...');
     
-    // Handle connection events
-    mongoose.connection.on('error', (err) => {
-      console.error(`MongoDB connection error: ${err}`);
-    });
-
-    mongoose.connection.on('disconnected', () => {
-      console.log('MongoDB disconnected');
-    });
-
+    // Initialize the in-memory store with dummy data
+    await inMemoryDataStore.initialize(dummyDataGenerator);
+    
+    console.log('[DB] In-memory data store ready (demo mode)');
+    
     // Graceful shutdown
     process.on('SIGINT', async () => {
-      await mongoose.connection.close();
-      console.log('MongoDB connection closed through app termination');
+      console.log('[DB] Shutting down gracefully...');
       process.exit(0);
     });
 
-    return conn;
+    return { connection: { ready: true } };
   } catch (error) {
-    console.error(`Error: ${error.message}`);
+    console.error(`[DB] Error: ${error.message}`);
     process.exit(1);
   }
 };

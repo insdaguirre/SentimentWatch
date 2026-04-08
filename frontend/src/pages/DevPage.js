@@ -3,197 +3,79 @@ import './DevPage.css';
 
 const DevPage = () => {
   return (
-    <div className="dev-page">
-      <div className="dev-header">
-        <h1>🔧 Developer Information</h1>
-        <p>Technical documentation and project resources</p>
+    <div className="dev-page page-shell">
+      <div className="dev-header section-card">
+        <span className="eyebrow">Build notes</span>
+        <p className="eyebrow">About this build</p>
+        <h1>SentimentWatch now runs as a frontend-only build.</h1>
+        <p>
+          The original hosted pipeline is out of the active path. What remains is the
+          product experience, powered by local data checked into the repo.
+        </p>
       </div>
 
       <div className="dev-content">
-        <div className="dev-section">
-          <h2>📁 GitHub Repository</h2>
-          <div className="github-link-container">
-            <a 
-              href="https://github.com/insdaguirre/SentimentWatch" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="github-link"
-            >
-              <span className="github-icon">📦</span>
-              <span className="github-text">View on GitHub</span>
-              <span className="github-arrow">→</span>
-            </a>
-          </div>
-        </div>
+        <section className="dev-grid">
+          <article className="dev-card section-card">
+            <h2>Static by design</h2>
+            <ul>
+              <li>Hash-based client routing for static hosting.</li>
+              <li>No live APIs, databases, cron jobs, or auth backends.</li>
+              <li>All sentiment, feed, and price context comes from local data objects.</li>
+            </ul>
+          </article>
+          <article className="dev-card section-card">
+            <h2>Data location</h2>
+            <p>
+              <code>frontend/src/data/demoData.js</code>
+            </p>
+            <p>
+              Five tickers are included with timelines, source breakdowns, and local
+              news, Reddit, and StockTwits-style items.
+            </p>
+          </article>
+        </section>
 
-        <div className="dev-section">
-          <h2>🏗️ Information Architecture</h2>
-          <div className="architecture-content">
-            <div className="architecture-diagram">
-              <div className="diagram-title">System Overview</div>
-              <div className="diagram-content">
-                <div className="diagram-layer">
-                  <div className="layer-title">Frontend (React)</div>
-                  <div className="layer-items">
-                    <span>• Main Page (News Tiles)</span>
-                    <span>• Agent Page (Sentiment Analysis)</span>
-                    <span>• News Page (SPY News)</span>
-                    <span>• Dev Page (Documentation)</span>
-                  </div>
-                </div>
-                <div className="diagram-arrow">↓</div>
-                <div className="diagram-layer">
-                  <div className="layer-title">Backend (Node.js/Express)</div>
-                  <div className="layer-items">
-                    <span>• Sentiment Analysis API</span>
-                    <span>• SPY Price Data API</span>
-                    <span>• News Aggregation API</span>
-                    <span>• MongoDB Integration</span>
-                  </div>
-                </div>
-                <div className="diagram-arrow">↓</div>
-                <div className="diagram-layer">
-                  <div className="layer-title">External Services</div>
-                  <div className="layer-items">
-                    <span>• Reddit API</span>
-                    <span>• StockTwits API</span>
-                    <span>• Yahoo Finance API</span>
-                    <span>• News APIs</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <section className="dev-columns">
+          <article className="dev-card section-card">
+            <h2>Run locally</h2>
+            <pre>
+              <code>{`npm install
+npm start --prefix frontend`}</code>
+            </pre>
+            <p>The app runs on the CRA dev server and does not require any env vars.</p>
+          </article>
 
-        <div className="dev-section">
-          <h2>🔄 Data Pipeline</h2>
-          <div className="pipeline-content">
-            <div className="pipeline-step">
-              <div className="step-number">1</div>
-              <div className="step-content">
-                <h3>Data Collection</h3>
-                <p>Automated ingestion from multiple sources (Reddit, StockTwits, News APIs)</p>
-              </div>
-            </div>
-            <div className="pipeline-arrow">→</div>
-            <div className="pipeline-step">
-              <div className="step-number">2</div>
-              <div className="step-content">
-                <h3>Sentiment Analysis</h3>
-                <p>Real-time processing using natural language processing algorithms</p>
-              </div>
-            </div>
-            <div className="pipeline-arrow">→</div>
-            <div className="pipeline-step">
-              <div className="step-number">3</div>
-              <div className="step-content">
-                <h3>Data Storage</h3>
-                <p>Aggregated data stored in MongoDB with time-series optimization</p>
-              </div>
-            </div>
-            <div className="pipeline-arrow">→</div>
-            <div className="pipeline-step">
-              <div className="step-number">4</div>
-              <div className="step-content">
-                <h3>API Delivery</h3>
-                <p>RESTful APIs with caching and rate limiting for frontend consumption</p>
-              </div>
-            </div>
-          </div>
-        </div>
+          <article className="dev-card section-card">
+            <h2>Build the static site</h2>
+            <pre>
+              <code>{`npm run build --prefix frontend`}</code>
+            </pre>
+            <p>The deployable output is written to <code>frontend/build</code>.</p>
+          </article>
+        </section>
 
-        <div className="dev-section">
-          <h2>🛠️ Technology Stack</h2>
-          <div className="tech-stack">
-            <div className="tech-category">
-              <h3>Frontend</h3>
-              <ul>
-                <li>React 18</li>
-                <li>React Router</li>
-                <li>Recharts</li>
-                <li>CSS3</li>
-                <li>Vercel (Deployment)</li>
-              </ul>
-            </div>
-            <div className="tech-category">
-              <h3>Backend</h3>
-              <ul>
-                <li>Node.js</li>
-                <li>Express.js</li>
-                <li>MongoDB</li>
-                <li>Mongoose</li>
-                <li>Heroku (Deployment)</li>
-              </ul>
-            </div>
-            <div className="tech-category">
-              <h3>APIs & Services</h3>
-              <ul>
-                <li>Reddit API</li>
-                <li>StockTwits API</li>
-                <li>Yahoo Finance API</li>
-                <li>News APIs</li>
-                <li>Natural Language Processing</li>
-              </ul>
-            </div>
-          </div>
-        </div>
+        <section className="dev-columns">
+          <article className="dev-card section-card">
+            <h2>How It Originally Ran</h2>
+            <ul>
+              <li>Live posts and headlines were pulled from Reddit, StockTwits, and news APIs.</li>
+              <li>A backend ingestion pipeline processed that activity into rolling sentiment snapshots.</li>
+              <li>Sentiment analysis used FinBERT plus custom finance-oriented rules and heuristics.</li>
+              <li>The API served current sentiment, timeline views, and source breakdowns back to the React frontend.</li>
+            </ul>
+          </article>
 
-        <div className="dev-section">
-          <h2>📊 API Endpoints</h2>
-          <div className="api-endpoints">
-            <div className="endpoint-group">
-              <h3>Sentiment Analysis</h3>
-              <div className="endpoint-list">
-                <div className="endpoint">
-                  <span className="method">GET</span>
-                  <span className="path">/api/sentiment/stats/:ticker</span>
-                  <span className="description">Get sentiment statistics</span>
-                </div>
-                <div className="endpoint">
-                  <span className="method">GET</span>
-                  <span className="path">/api/sentiment/timeline/:ticker</span>
-                  <span className="description">Get sentiment timeline</span>
-                </div>
-                <div className="endpoint">
-                  <span className="method">GET</span>
-                  <span className="path">/api/sentiment/posts/:ticker</span>
-                  <span className="description">Get recent posts</span>
-                </div>
-              </div>
-            </div>
-            <div className="endpoint-group">
-              <h3>SPY Data</h3>
-              <div className="endpoint-list">
-                <div className="endpoint">
-                  <span className="method">GET</span>
-                  <span className="path">/api/sentiment/spy/:timeWindow</span>
-                  <span className="description">Get SPY price data</span>
-                </div>
-                <div className="endpoint">
-                  <span className="method">GET</span>
-                  <span className="path">/api/sentiment/spy/metrics/:timeWindow</span>
-                  <span className="description">Get SPY metrics (volatility, Sharpe ratio)</span>
-                </div>
-              </div>
-            </div>
-            <div className="endpoint-group">
-              <h3>News</h3>
-              <div className="endpoint-list">
-                <div className="endpoint">
-                  <span className="method">GET</span>
-                  <span className="path">/api/news/general</span>
-                  <span className="description">Get general financial news</span>
-                </div>
-                <div className="endpoint">
-                  <span className="method">GET</span>
-                  <span className="path">/api/news/spy</span>
-                  <span className="description">Get SPY-specific news</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+          <article className="dev-card section-card">
+            <h2>Original Hosted Stack</h2>
+            <ul>
+              <li>The backend was deployed on Heroku and ran the ingestion and API layer.</li>
+              <li>Processed snapshots and related data were stored in MongoDB.</li>
+              <li>Fresh data was actively ingested on a schedule rather than being hardcoded.</li>
+              <li>The frontend reflected live sentiment conditions instead of a local dataset.</li>
+            </ul>
+          </article>
+        </section>
       </div>
     </div>
   );

@@ -1,509 +1,88 @@
-# 📈 SentimentWatch 
+# SentimentWatch Demo
 
-A production-ready finance app that tracks real-time sentiment across Reddit, StockTwits, news sources, and Finnhub for stock tickers (starting with SPY). Data is ingested into MongoDB, enriched with VADER sentiment analysis enhanced with finance-specific rules, and exposed via a Node.js/Express API with a beautiful React frontend.
+SentimentWatch is now a fully static product demo. The app preserves the original concept of stock sentiment tracking, but every number, chart, headline, and post is synthetic demo data checked into the repo.
 
-![Architecture](https://img.shields.io/badge/Stack-MERN-green)
-![License](https://img.shields.io/badge/License-MIT-blue)
-![Status](https://img.shields.io/badge/Status-Archived-yellow)
+## What This Repo Is Now
 
-> **Note**: This project is currently not deployed due to hosting costs. See the UI preview below to see what it looked like when it was live.
+- Static React frontend only
+- No live APIs, databases, workers, auth backends, or scheduled jobs
+- No real news, Reddit, StockTwits, market data, or sentiment analysis
+- Deployable as a free static site
 
-## 🎯 Features
+The active demo flow lives in the frontend. Legacy backend code may still exist in the repo for reference, but it is not required to run or deploy the demo.
 
-- **Multi-Source Sentiment Analysis**: Aggregates data from Reddit, StockTwits, news outlets, and Finnhub
-- **AI-Powered Insights**: Uses VADER sentiment analysis enhanced with 40+ finance-specific keywords
-- **Real-Time Dashboard**: Beautiful React frontend with live sentiment metrics
-- **Automated Data Collection**: Background worker ingests data every 15 minutes
-- **RESTful API**: Well-documented Express API with rate limiting and CORS
-- **Timeline Visualization**: Track sentiment trends over time with interactive charts
-- **Source Breakdown**: See sentiment distribution by platform (Reddit, StockTwits, News, Finnhub)
-- **Cloud Deployment**: Previously deployed on Heroku (backend) + Vercel (frontend) + MongoDB Atlas
+## Demo Data
 
-## 📸 UI Preview
+The demo dataset lives in [frontend/src/data/demoData.js](/Users/diego/SentimentWatchDemo/SentimentWatch/frontend/src/data/demoData.js).
 
-![SentimentWatch Dashboard](ui.png)
+It includes synthetic coverage for:
 
-*The SentimentWatch dashboard showing real-time sentiment analysis, timeline charts, source breakdown, and SPY price data.*
+- `AAPL`
+- `TSLA`
+- `NVDA`
+- `MSFT`
+- `AMZN`
 
-## 🏗️ Architecture
+For each ticker, the dataset includes:
 
-```mermaid
-flowchart LR
-    subgraph "Data Sources"
-        A[Reddit API] -->|posts| B[Ingestion Worker]
-        C[StockTwits via RapidAPI] -->|messages| B
-        D[News API] -->|headlines| B
-        E[Finnhub API] -->|articles| B
-    end
+- A synthetic sentiment summary
+- Multi-day time-series sentiment points
+- Synthetic price context for charts
+- Source breakdowns for news, Reddit-style, and StockTwits-like chatter
+- Fictional feed items over multiple dates
+- Top themes and demo summary copy
 
-    B -->|normalize & dedupe| F[VADER + Finance Rules]
-    F -->|sentiment scores| G[MongoDB Atlas]
-    
-    G -->|query| H[Express API on Heroku]
-    H -->|CORS enabled| I[React Frontend on Vercel]
-    
-    subgraph "Deployment"
-        J[Heroku Basic Dyno]
-        K[Vercel Static Hosting]
-        L[MongoDB Atlas Cloud]
-    end
-    
-    H -.->|deployed on| J
-    I -.->|deployed on| K
-    G -.->|hosted on| L
-```
+All content is intentionally fictional and presented as a showcase only.
 
-## 🧠 How It Works
+## Local Run
 
-### Data Flow Architecture
-1. **Data Collection**: Background worker runs every 15 minutes
-2. **Multi-Source Ingestion**: Fetches from Reddit, StockTwits, News, and Finnhub APIs
-3. **Sentiment Analysis**: VADER + finance-specific keyword enhancement
-4. **Real-Time Aggregation**: Creates 5-minute sentiment snapshots
-5. **API Exposure**: Express.js serves aggregated data via REST endpoints
-6. **Frontend Visualization**: React dashboard displays live sentiment metrics
+From the repo root:
 
-### Optimized Data Architecture (v2.0)
-- **Sentiment Snapshots**: Aggregated data stored in 5-minute windows
-- **Memory Efficient**: Individual posts processed and discarded immediately
-- **TTL Indexes**: Automatic cleanup of old data (30-day retention)
-- **End-of-Day Cleanup**: Daily maintenance at 4:00 PM EST
-- **Real-Time Processing**: Batch processing for memory optimization
-- **Deduplication System**: In-memory ID tracking prevents duplicate processing
-- **Multi-Source Integration**: Reddit (75), StockTwits (48 SPY+SPX), News (20), Finnhub (8) posts per cycle
-
-### Sentiment Analysis Engine
-
-#### VADER + Finance Enhancement
-- **Base Model**: VADER sentiment analysis (lightweight, fast)
-- **Finance Keywords**: 40+ specialized terms for financial context
-- **Memory Efficient**: Uses only ~5MB vs 400MB+ for FinBERT
-- **Real-time**: Instant sentiment analysis without model loading
-
-#### Finance-Specific Keywords
-- **Positive**: bull, bullish, rally, surge, moon, HODL, diamond hands, pump, etc.
-- **Negative**: bear, bearish, crash, dump, rekt, bag holder, FUD, etc.
-- **Neutral**: hold, stable, consolidate, analysis, research, etc.
-
-#### Sentiment Scoring Algorithm
-```javascript
-// 1. VADER base analysis
-const vaderResult = vader.SentimentIntensityAnalyzer.polarity_scores(text);
-
-// 2. Finance keyword enhancement
-const financeBoost = calculateFinanceBoost(text, financeKeywords);
-
-// 3. Enhanced compound score
-const enhancedCompound = vaderResult.compound + financeBoost;
-
-// 4. Final sentiment classification
-if (enhancedCompound >= 0.05) return 'positive';
-if (enhancedCompound <= -0.05) return 'negative';
-return 'neutral';
-```
-
-### Deduplication System (v2.1)
-- **In-Memory Caching**: JavaScript Sets for O(1) lookup time
-- **ID-Based Tracking**: Uses unique source IDs (reddit_123, finnhub_456, etc.)
-- **Persistent Storage**: ProcessedPostId collection with 7-day TTL
-- **Memory Management**: Automatic cleanup prevents memory bloat
-- **Cross-Source Deduplication**: Prevents duplicate processing across all sources
-- **Restart Resilience**: Loads recent IDs on startup to prevent duplicates
-
-### Multi-Symbol StockTwits Integration (v2.2)
-- **Comprehensive S&P 500 Coverage**: Fetches from both SPY and SPX symbols
-- **Parallel Processing**: SPY (70%) + SPX (30%) posts fetched simultaneously
-- **Enhanced Sentiment Data**: Captures both ETF and index-specific discussions
-- **90% Coverage Improvement**: From ~60% to ~90% of S&P 500 discussions
-- **Error Handling**: Graceful fallback to single SPY call if SPX fails
-- **Rate Limit Efficient**: Only 2 API calls per cycle, well within limits
-
-## 📊 API Endpoints (v2.0)
-
-### Core Endpoints
-- `GET /api/sentiment` - API information and available endpoints
-- `GET /api/sentiment/current/:ticker` - Get latest sentiment snapshot
-- `GET /api/sentiment/snapshots/:ticker` - Get recent sentiment snapshots
-- `GET /api/sentiment/stats/:ticker` - Get aggregated sentiment statistics
-- `GET /api/sentiment/timeline/:ticker` - Get sentiment timeline data
-- `GET /api/sentiment/top/:ticker` - Get top sentiment snapshots by confidence
-- `GET /api/sentiment/health` - Health check and system status
-
-### Data Models
-
-#### SentimentSnapshot Schema
-```javascript
-{
-  ticker: "SPY",
-  timestamp: "2025-10-08T20:30:01.583Z",
-  timeWindow: "5min",
-  totalPosts: 54,
-  sentimentBreakdown: {
-    positive: { count: 25, avgScore: 0.78 },
-    negative: { count: 11, avgScore: 0.23 },
-    neutral: { count: 18, avgScore: 0.52 }
-  },
-  sources: {
-    reddit: { count: 4, sentiment: { positive: 2, negative: 1, neutral: 1 } },
-    stocktwits: { count: 30, sentiment: { positive: 15, negative: 7, neutral: 8 } },
-    news: { count: 20, sentiment: { positive: 8, negative: 3, neutral: 9 } },
-    finnhub: { count: 8, sentiment: { positive: 3, negative: 2, neutral: 3 } }
-  },
-  overallSentiment: "bullish",
-  overallScore: 0.76,
-  confidence: 0.46,
-  volatility: 0.12
-}
-```
-
-## 🛠️ Technology Stack
-
-### Backend (Node.js/Express)
-- **Runtime**: Node.js 24.9.0
-- **Framework**: Express.js with middleware (CORS, Helmet, Rate Limiting)
-- **Database**: MongoDB Atlas with Mongoose ODM
-- **Sentiment**: VADER with custom finance rules
-- **APIs**: Reddit (Snoowrap), StockTwits (RapidAPI), News API, Finnhub API
-- **Deployment**: Heroku Basic Dyno (512MB RAM)
-- **Worker**: Node-cron for scheduled data ingestion
-
-### Frontend (React)
-- **Framework**: React 18.2.0 with Create React App
-- **Charts**: Recharts for timeline visualization
-- **Styling**: CSS with modern gradients and responsive design
-- **State**: React Hooks (useState, useEffect, useCallback)
-- **HTTP**: Axios for API communication
-- **Deployment**: Vercel with automatic builds
-
-### Infrastructure
-- **Database**: MongoDB Atlas (M0 Free Tier)
-- **Backend Hosting**: Heroku Basic ($7/month)
-- **Frontend Hosting**: Vercel (Free Tier)
-- **CDN**: Vercel Edge Network
-- **Monitoring**: Heroku logs + Vercel analytics
-
-## 🚀 Quick Start (Local Development)
-
-### Prerequisites
-- Node.js v18+
-- MongoDB (local or Atlas)
-- API keys for Reddit, RapidAPI, and News API
-
-### 1. Clone and Install
 ```bash
-git clone <your-repo-url>
-cd StockSentiment
-
-# Backend
-cd backend
 npm install
-
-# Frontend  
-cd ../frontend
-npm install
+npm start --prefix frontend
 ```
 
-### 2. Configure Environment
-```bash
-# Backend
-cd backend
-cp env.example .env
-# Edit .env with your API credentials
-```
+The app runs on `http://localhost:3000`.
 
-Required environment variables:
-```env
-# Database
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/database
+No backend, database, `.env`, or API keys are required.
 
-# Reddit API
-REDDIT_CLIENT_ID=your_client_id
-REDDIT_CLIENT_SECRET=your_client_secret
-REDDIT_USERNAME=your_reddit_username
-REDDIT_PASSWORD=your_reddit_password
-REDDIT_USER_AGENT=StockSentimentApp/1.0
+## Static Build
 
-# RapidAPI for StockTwits
-RAPIDAPI_KEY=your_rapidapi_key
-
-# News API
-NEWS_API_KEY=your_news_api_key
-
-# Finnhub API
-FINNHUB_API_KEY=your_finnhub_api_key
-
-# CORS (for production)
-CORS_ORIGIN=https://your-frontend-domain.vercel.app
-```
-
-### 3. Start the Application
-
-**Terminal 1 - Backend:**
-```bash
-cd backend
-npm start
-```
-
-**Terminal 2 - Worker:**
-```bash
-cd backend
-npm run worker
-```
-
-**Terminal 3 - Frontend:**
-```bash
-cd frontend
-npm start
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser!
-
-## 🐳 Docker Deployment
+Build the deployable static site with:
 
 ```bash
-# Create .env file first
-cd backend
-cp env.example .env
-# Add your API credentials
-
-# Start all services
-cd ..
-docker-compose up -d
+npm run build --prefix frontend
 ```
 
-Services will be available at:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:5000
-- MongoDB: localhost:27017
+The output is written to `frontend/build`.
 
-## 🔄 Worker Process Details
+## Free Deployment
 
-### Ingestion Worker (`ingestionWorker.js`)
-The background worker is the heart of the data collection system:
+### Vercel
 
-#### Process Flow
-1. **Initialization**: Connects to MongoDB and initializes VADER sentiment analyzer
-2. **Data Fetching**: Parallel requests to Reddit, Multi-Symbol StockTwits (SPY+SPX), News, and Finnhub APIs
-3. **Multi-Symbol Processing**: Fetches SPY (70%) and SPX (30%) posts simultaneously for comprehensive S&P 500 coverage
-4. **Batch Processing**: Processes posts in batches of 10 for memory efficiency
-5. **Sentiment Analysis**: VADER + finance keyword enhancement for each post
-6. **Aggregation**: Creates sentiment snapshots with breakdowns by source and sentiment
-7. **Storage**: Saves aggregated snapshots to MongoDB
-8. **Cleanup**: Clears processed data from memory
+Use these settings at the repo root:
 
-#### Scheduling
-- **Ingestion**: Every 15 minutes (`*/15 * * * *`)
-- **End-of-Day Cleanup**: Daily at 4:00 PM EST (`0 21 * * *`)
-- **TTL Indexes**: Automatic cleanup after 30 days
-
-#### Memory Management
-- **Batch Processing**: 10 posts per batch to prevent memory overflow
-- **Immediate Cleanup**: Individual posts discarded after processing
-- **Aggregated Storage**: Only sentiment snapshots stored long-term
-
-### Data Processing Pipeline
-```mermaid
-graph TD
-    A[Worker Starts] --> B[Fetch from APIs]
-    B --> B1[Reddit API]
-    B --> B2[StockTwits Multi-Symbol]
-    B --> B3[News API]
-    B --> B4[Finnhub API]
-    B2 --> B2a[SPY Posts 70%]
-    B2 --> B2b[SPX Posts 30%]
-    B2a --> C[Batch Processing]
-    B2b --> C
-    B1 --> C
-    B3 --> C
-    B4 --> C
-    C --> D[Sentiment Analysis]
-    D --> E[Aggregate Data]
-    E --> F[Create Snapshot]
-    F --> G[Save to MongoDB]
-    G --> H[Memory Cleanup]
-    H --> I[Wait 15 minutes]
-    I --> A
+```text
+Install Command: cd frontend && npm install
+Build Command: cd frontend && npm run build
+Output Directory: frontend/build
 ```
 
-## 📈 Performance & Scaling
+The repo already includes a root [vercel.json](/Users/diego/SentimentWatchDemo/SentimentWatch/vercel.json) for this frontend-only build.
 
-### Current Metrics
-- **Data Collection**: 181+ posts per 15-minute cycle (Reddit: 75, StockTwits: 48 SPY+SPX, News: 20, Finnhub: 8)
-- **Memory Usage**: ~50MB (VADER vs 400MB+ for FinBERT)
-- **API Response Time**: <200ms average
-- **Uptime**: 99.9% (Heroku + Vercel)
-- **Database**: 235+ posts collected and analyzed
-- **Snapshot Creation**: 5-minute aggregated windows
-- **Data Retention**: 30-day TTL with daily cleanup
+### Netlify
 
-### Scaling Considerations
-- **Database**: MongoDB Atlas scales automatically
-- **Backend**: Upgrade to Heroku Standard for more memory
-- **Frontend**: Vercel handles global CDN automatically
-- **Worker**: Can run multiple instances for higher throughput
-- **Memory**: Optimized for 512MB Heroku Basic dyno
+Use these settings:
 
-## 🧪 Testing
-
-### Local Testing
-```bash
-# Backend tests
-cd backend
-npm test
-
-# Test data ingestion (single run)
-npm run worker -- --once  # Run one ingestion cycle
-
-# Test API endpoints
-curl http://localhost:5000/api/sentiment/health
-curl http://localhost:5000/api/sentiment/current/SPY
-curl http://localhost:5000/api/sentiment/snapshots/SPY?limit=5
+```text
+Base directory: frontend
+Build command: npm run build
+Publish directory: build
 ```
 
-### Production Testing
-```bash
-# Test live API endpoints
-curl https://stocksentiment-e3cfd7d49077.herokuapp.com/api/sentiment/health
-curl https://stocksentiment-e3cfd7d49077.herokuapp.com/api/sentiment/current/SPY
-curl https://stocksentiment-e3cfd7d49077.herokuapp.com/api/sentiment/stats/SPY?hours=24
+## Notes
 
-# Check worker status
-heroku ps --app stocksentiment
-heroku logs --tail --app stocksentiment
-```
-
-### Troubleshooting Common Issues
-
-#### Duplicate Time Values on Timeline
-**Problem**: Multiple snapshots with same timestamp on x-axis
-**Cause**: Multiple worker processes running simultaneously
-**Solution**: 
-```bash
-# Check running processes
-heroku ps --app stocksentiment
-
-# Stop duplicate workers
-heroku ps:stop run.XXXX --app stocksentiment
-```
-
-#### Memory Issues
-**Problem**: Worker crashes with R14 (Memory quota exceeded)
-**Cause**: Large sentiment models or inefficient processing
-**Solution**: VADER sentiment analysis (already implemented)
-
-#### CORS Errors
-**Problem**: Frontend can't access backend API
-**Cause**: CORS configuration or missing environment variables
-**Solution**:
-```bash
-# Set CORS origin for production
-heroku config:set CORS_ORIGIN=https://your-frontend.vercel.app --app stocksentiment
-```
-
-## 📁 Project Structure
-
-```
-StockSentiment/
-├── backend/                    # Node.js/Express API
-│   ├── src/
-│   │   ├── server.js          # Express app entry point
-│   │   ├── config/
-│   │   │   └── database.js    # MongoDB connection
-│   │   ├── models/
-│   │   │   ├── SentimentPost.js      # Legacy post model (cleanup only)
-│   │   │   └── SentimentSnapshot.js  # Aggregated snapshot model
-│   │   ├── routes/
-│   │   │   └── sentiment.js   # API endpoints (v2.0)
-│   │   ├── services/
-│   │   │   ├── sentimentAnalyzer.js  # VADER + finance rules
-│   │   │   ├── redditService.js      # Reddit API integration
-│   │   │   ├── stocktwitsService.js  # StockTwits via RapidAPI
-│   │   │   ├── newsService.js        # News API integration
-│   │   │   └── finnhubService.js     # Finnhub API integration
-│   │   ├── workers/
-│   │   │   └── ingestionWorker.js    # Background data collector
-│   │   └── tests/             # Jest test suite
-│   ├── package.json           # Backend dependencies
-│   ├── env.example           # Environment variables template
-│   └── .env                  # Environment variables (gitignored)
-│
-├── frontend/                   # React Dashboard
-│   ├── src/
-│   │   ├── App.js             # Main React component
-│   │   ├── components/
-│   │   │   ├── SentimentDashboard.js # Main dashboard
-│   │   │   ├── TimelineChart.js      # Recharts timeline
-│   │   │   ├── StatsPanel.js         # Source breakdown
-│   │   │   └── PostsFeed.js          # Legacy component
-│   │   ├── services/
-│   │   │   └── api.js         # API client
-│   │   ├── App.css            # Main styles
-│   │   └── index.js           # React entry point
-│   ├── package.json           # Frontend dependencies
-│   └── public/               # Static assets
-│
-├── Procfile                  # Heroku process configuration
-├── vercel.json              # Vercel deployment configuration
-├── docker-compose.yml       # Docker deployment
-├── package.json             # Root package.json for Heroku
-└── README.md                # This file
-```
-
-### Key Files Explained
-
-#### Backend Core Files
-- **`server.js`**: Express app with CORS, rate limiting, and route configuration
-- **`ingestionWorker.js`**: Background worker with cron scheduling, memory management, and multi-symbol StockTwits integration
-- **`sentimentAnalyzer.js`**: VADER sentiment analysis with finance keyword enhancement
-- **`SentimentSnapshot.js`**: MongoDB model for aggregated sentiment data with TTL indexes
-
-#### Frontend Core Files
-- **`App.js`**: Main React component with data fetching and state management
-- **`TimelineChart.js`**: Recharts component for sentiment timeline visualization
-- **`StatsPanel.js`**: Source breakdown with sentiment distribution
-- **`api.js`**: Axios-based API client for backend communication
-
-#### Configuration Files
-- **`Procfile`**: Heroku process definitions (web + worker dynos)
-- **`vercel.json`**: Vercel deployment configuration for frontend
-- **`env.example`**: Template for required environment variables
-
-
-## 🚀 Deployment
-
-### Heroku (Backend)
-```bash
-# Install Heroku CLI
-npm install -g heroku
-
-# Login and create app
-heroku login
-heroku create your-app-name
-
-# Set environment variables
-heroku config:set MONGODB_URI=your_mongodb_uri
-heroku config:set REDDIT_CLIENT_ID=your_client_id
-# ... set all other env vars
-
-# Deploy
-git push heroku main
-```
-
-### Vercel (Frontend)
-```bash
-# Install Vercel CLI
-npm install -g vercel
-
-# Login and deploy
-vercel login
-cd frontend
-vercel --prod
-```
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-**Built with ❤️**
+- Routing uses `HashRouter`, so the demo works cleanly on static hosts without a backend rewrite layer.
+- The app shows a visible demo treatment in the UI and avoids implying any live market or trading functionality.
+- Frontend runtime data access is handled through [frontend/src/services/api.js](/Users/diego/SentimentWatchDemo/SentimentWatch/frontend/src/services/api.js), which now reads only from local demo objects.

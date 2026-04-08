@@ -1,152 +1,127 @@
 import React, { useState } from 'react';
-import { formatDistanceToNow } from 'date-fns';
 import './PostsFeed.css';
 
-const PostsFeed = ({ posts, ticker }) => {
+const sourceLabels = {
+  news: 'News',
+  reddit: 'Reddit',
+  stocktwits: 'StockTwits',
+};
+
+const PostsFeed = ({
+  posts,
+  ticker,
+  title = 'Recent Feed',
+  subtitle = '',
+  hideFilters = false,
+  lockedSource = null,
+}) => {
   const [sourceFilter, setSourceFilter] = useState('all');
   const [sentimentFilter, setSentimentFilter] = useState('all');
+  const effectiveSource = lockedSource || sourceFilter;
 
   if (!posts || posts.length === 0) {
     return (
-      <div className="posts-feed">
-        <h2>📝 Recent Posts</h2>
-        <div className="no-posts">No posts available yet. Check back soon!</div>
+      <div className="posts-feed section-card">
+        <div className="posts-empty">
+          <h2>{title}</h2>
+          <p>No items matched the current filter.</p>
+        </div>
       </div>
     );
   }
 
   const filteredPosts = posts.filter(post => {
-    if (sourceFilter !== 'all' && post.source !== sourceFilter) return false;
+    if (effectiveSource !== 'all' && post.source !== effectiveSource) return false;
     if (sentimentFilter !== 'all' && post.sentiment.label !== sentimentFilter) return false;
     return true;
   });
 
-  const getSentimentBadgeClass = (label) => {
-    return `sentiment-badge sentiment-${label}`;
-  };
-
-  const getSentimentIcon = (label) => {
-    switch (label) {
-      case 'positive': return '📈';
-      case 'negative': return '📉';
-      case 'neutral': return '➡️';
-      default: return '❓';
-    }
-  };
-
-  const getSourceIcon = (source) => {
-    switch (source) {
-      case 'reddit': return '🤖';
-      case 'stocktwits': return '💬';
-      case 'news': return '📰';
-      default: return '📄';
-    }
-  };
-
   return (
-    <div className="posts-feed">
+    <div className="posts-feed section-card">
       <div className="posts-header">
-        <h2>📝 Recent Posts</h2>
-        
-        <div className="filters">
-          <select 
-            value={sourceFilter} 
-            onChange={(e) => setSourceFilter(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">All Sources</option>
-            <option value="reddit">Reddit</option>
-            <option value="stocktwits">StockTwits</option>
-            <option value="news">News</option>
-          </select>
-
-          <select 
-            value={sentimentFilter} 
-            onChange={(e) => setSentimentFilter(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">All Sentiments</option>
-            <option value="positive">Positive</option>
-            <option value="neutral">Neutral</option>
-            <option value="negative">Negative</option>
-          </select>
+        <div>
+          <p className="eyebrow">{ticker ? `${ticker} feed` : 'Feed'}</p>
+          <h2>{title}</h2>
+          {subtitle && <p className="posts-subtitle">{subtitle}</p>}
         </div>
+
+        {!hideFilters && (
+          <div className="filters">
+            <select
+              value={sourceFilter}
+              onChange={(e) => setSourceFilter(e.target.value)}
+              className="filter-select"
+            >
+              <option value="all">All sources</option>
+              <option value="news">News</option>
+              <option value="reddit">Reddit</option>
+              <option value="stocktwits">StockTwits</option>
+            </select>
+
+            <select
+              value={sentimentFilter}
+              onChange={(e) => setSentimentFilter(e.target.value)}
+              className="filter-select"
+            >
+              <option value="all">All sentiment</option>
+              <option value="positive">Positive</option>
+              <option value="neutral">Neutral</option>
+              <option value="negative">Negative</option>
+            </select>
+          </div>
+        )}
       </div>
 
-      <div className="posts-count">
-        Showing {filteredPosts.length} of {posts.length} posts
-      </div>
+      <div className="posts-count">Showing {filteredPosts.length} of {posts.length} items</div>
 
       <div className="posts-list">
-        {filteredPosts.map((post, index) => (
-          <div key={post.id || index} className="post-card">
+        {filteredPosts.map((post) => (
+          <article key={post.id} className="post-card">
             <div className="post-header">
               <div className="post-source">
-                <span className="source-icon">{getSourceIcon(post.source)}</span>
-                <span className="source-text">{post.source}</span>
+                <span className="source-text">{sourceLabels[post.source] || post.source}</span>
+                <span className="source-platform">{post.platform}</span>
               </div>
               <div className="post-meta">
                 <span className="post-time">
-                  {formatDistanceToNow(new Date(post.publishedAt), { addSuffix: true })}
+                  {new Date(post.publishedAt).toLocaleString([], {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                  })}
                 </span>
               </div>
             </div>
 
-            {post.title && (
-              <h3 className="post-title">{post.title}</h3>
-            )}
+            {post.title && <h3 className="post-title">{post.title}</h3>}
 
-            <p className="post-content">
-              {post.content.length > 300 
-                ? `${post.content.substring(0, 300)}...` 
-                : post.content}
-            </p>
+            <p className="post-content">{post.content}</p>
 
             <div className="post-footer">
-              <div className={getSentimentBadgeClass(post.sentiment.label)}>
-                <span className="sentiment-icon">
-                  {getSentimentIcon(post.sentiment.label)}
-                </span>
-                <span className="sentiment-text">
-                  {post.sentiment.label}
-                </span>
+              <div className={`sentiment-badge sentiment-${post.sentiment.label}`}>
+                <span className="sentiment-text">{post.sentiment.label}</span>
                 <span className="sentiment-score">
                   {(post.sentiment.score * 100).toFixed(0)}%
                 </span>
               </div>
 
               <div className="post-stats">
-                {post.metadata?.upvotes && (
+                {post.metrics?.reactions && (
                   <span className="stat-item">
-                    👍 {post.metadata.upvotes}
+                    {post.metrics.reactions} reactions
                   </span>
                 )}
-                {post.metadata?.comments && (
+                {post.metrics?.comments && (
                   <span className="stat-item">
-                    💬 {post.metadata.comments}
+                    {post.metrics.comments} comments
                   </span>
                 )}
               </div>
-
-              {post.url && (
-                <a 
-                  href={post.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="post-link"
-                >
-                  View Source →
-                </a>
-              )}
             </div>
 
-            {post.author && (
-              <div className="post-author">
-                by {post.author}
-                {post.metadata?.subreddit && ` in r/${post.metadata.subreddit}`}
-              </div>
-            )}
-          </div>
+            {post.author && <div className="post-author">{post.author}</div>}
+          </article>
         ))}
       </div>
     </div>
@@ -154,4 +129,3 @@ const PostsFeed = ({ posts, ticker }) => {
 };
 
 export default PostsFeed;
-

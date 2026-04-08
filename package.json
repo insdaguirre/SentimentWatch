@@ -1,11 +1,11 @@
 {
-  "name": "stock-sentiment-app",
+  "name": "sentimentwatch-static-demo",
   "version": "1.0.0",
-  "description": "Stock sentiment tracking app with Heroku deployment",
+  "description": "Static SentimentWatch showcase with local synthetic data and zero backend services",
   "scripts": {
-    "start": "cd backend && npm start",
-    "build": "cd backend && npm install",
-    "heroku-postbuild": "cd backend && npm install"
+    "start": "npm start --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "test": "npm test --prefix frontend -- --watchAll=false"
   },
   "engines": {
     "node": ">=18.0.0",
@@ -16,12 +16,11 @@
     "url": "https://github.com/yourusername/StockSentiment.git"
   },
   "keywords": [
-    "stock",
+    "demo",
+    "static-site",
+    "react",
     "sentiment",
-    "finance",
-    "reddit",
-    "stocktwits",
-    "news"
+    "stocks"
   ],
   "author": "Your Name",
   "license": "MIT"

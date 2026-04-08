@@ -4,38 +4,54 @@ import './SentimentOverview.css';
 const SentimentOverview = ({ stats }) => {
   if (!stats || !stats.sentimentBreakdown) return null;
 
-  const getSentimentLabel = (score) => {
-    if (score > 0.6) return 'Bullish';
-    if (score > 0.4) return 'Neutral';
-    return 'Bearish';
-  };
-
-  const getSentimentIcon = (score) => {
-    if (score > 0.6) return '🚀';
-    if (score > 0.4) return '➡️';
-    return '📉';
-  };
-
-  const sentimentLabel = getSentimentLabel(stats.overallScore || 0.5);
-  const sentimentIcon = getSentimentIcon(stats.overallScore || 0.5);
+  const sentimentLabel = stats.tone.label;
 
   return (
-    <div className="sentiment-overview">
-      <div className="sentiment-header">
-        <h2 className="sentiment-title">
-          {sentimentLabel} {sentimentIcon}
-        </h2>
-        <div className="sentiment-score">
-          Overall Sentiment Score: {((stats.overallScore || 0.5) * 100).toFixed(1)}%
+    <section className="sentiment-overview section-card">
+      <div className="sentiment-overview__hero">
+        <div>
+          <p className="eyebrow">Overview</p>
+          <h2 className="sentiment-title">{sentimentLabel} setup for {stats.symbol}</h2>
+          <p className="sentiment-copy">{stats.summary}</p>
+          <div className="pill-row">
+            {stats.topThemes.map((theme) => (
+              <span key={theme} className="sentiment-theme">
+                {theme}
+              </span>
+            ))}
+          </div>
         </div>
-        <div className="sentiment-meta">
-          Based on {stats.totalPosts || 0} posts in the last 24 hours
+        <div className={`sentiment-score sentiment-score--${stats.tone.tone}`}>
+          <span>Sentiment score</span>
+          <strong>{(stats.overallScore * 100).toFixed(0)}</strong>
+          <em>{stats.confidence.toFixed(2)} confidence</em>
         </div>
       </div>
-      
+
+      <div className="sentiment-stats">
+        <div className="sentiment-stat">
+          <span>24h sample</span>
+          <strong>{stats.totalPosts}</strong>
+        </div>
+        <div className="sentiment-stat">
+          <span>Price context</span>
+          <strong>${stats.price.toFixed(2)}</strong>
+        </div>
+        <div className="sentiment-stat">
+          <span>Day move</span>
+          <strong className={stats.dayChange >= 0 ? 'tone-positive' : 'tone-negative'}>
+            {stats.dayChange >= 0 ? '+' : ''}
+            {stats.dayChange.toFixed(1)}%
+          </strong>
+        </div>
+        <div className="sentiment-stat">
+          <span>Risk note</span>
+          <strong>{stats.riskNote}</strong>
+        </div>
+      </div>
+
       <div className="sentiment-breakdown">
         <div className="sentiment-item positive">
-          <div className="sentiment-icon">📈</div>
           <div className="sentiment-numbers">
             <span className="sentiment-count">{stats.sentimentBreakdown.positive?.count || 0}</span>
             <span className="sentiment-percentage">{((stats.sentimentBreakdown.positive?.percentage || 0) * 100).toFixed(1)}%</span>
@@ -79,7 +95,7 @@ const SentimentOverview = ({ stats }) => {
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
